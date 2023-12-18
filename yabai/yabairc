@@ -37,8 +37,8 @@ yabai -m config \
 	normal_window_opacity 0.90 \
 	window_opacity off \
 	insert_feedback_color 0xffd75f5f \
-	active_window_border_color 0xff06f0f0 \ #0xE0808080 \
-	normal_window_border_color 0xE0808080 \
+	active_window_border_color 0xff7aa2f7 \
+	normal_window_border_color 0x80565f89 \
 	window_border_width 5 \
 	window_border_radius 2 \
 	window_border_blur off \
@@ -56,7 +56,7 @@ yabai -m config \
 	mouse_modifier fn \
 	mouse_action1 move \
 	mouse_action2 resize \
-	mouse_drop_action swap
+	mouse_drop_action swap #0xE0808080 \
 
 # Exclude problematic apps from being managed:
 yabai -m rule --add app="^(LuLu|Calculator|Software Update|Dictionary|VLC|System Preferences|System Settings|zoom.us|Photo Booth|Archive Utility|Python|LibreOffice|App Store|Steam|Alfred|Activity Monitor)$" manage=off
