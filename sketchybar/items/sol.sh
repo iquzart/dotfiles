@@ -1,10 +1,10 @@
 #!/bin/bash
 
-btc=(
-	script="$PLUGIN_DIR/btc.sh"
+sol=(
+	script="$PLUGIN_DIR/sol.sh"
 	update_freq=60
-	icon=􀗖 #₿
-	icon.color=$GOLD
+	icon=􀀩
+	icon.color=$MAGENTA
 	icon.padding_left=10
 	icon.font="$FONT:Bold:19.0"
 	label.color=$LABEL_COLOR
@@ -16,5 +16,5 @@ btc=(
 	background.padding_right=5
 )
 
-sketchybar -m --add item btc right \
-	--set btc "${btc[@]}"
+sketchybar -m --add item sol right \
+	--set sol "${sol[@]}"
