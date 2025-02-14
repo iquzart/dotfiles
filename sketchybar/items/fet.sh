@@ -1,12 +1,12 @@
 #!/bin/bash
 
-btc=(
-  script="$PLUGIN_DIR/btc.sh"
+fet=(
+  script="$PLUGIN_DIR/fet.sh"
   update_freq=60
-  icon=􀗖 #₿
-  icon.color=$GOLD
+  icon=fetch.ai
+  icon.color=$BLUE
   icon.padding_left=10
-  icon.font="$FONT:Bold:15.0"
+  icon.font="$FONT:Bold:12.0"
   label.color=$LABEL_COLOR
   label.padding_right=5
   label.padding_left=5
@@ -16,5 +16,5 @@ btc=(
   background.padding_right=5
 )
 
-sketchybar -m --add item btc right \
-  --set btc "${btc[@]}"
+sketchybar -m --add item fet right \
+  --set fet "${fet[@]}"
