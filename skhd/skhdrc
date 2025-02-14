@@ -15,6 +15,12 @@ cmd + shift - s : skhd --restart-service
 # Retstart Sketchybar
 cmd + shift - b : brew services restart sketchybar
 
+# Fix yebai screen top padding - external screen
+cmd + shift - e : yabai -m config top_padding 40
+
+# Fix yebai screen top padding - internal screen
+cmd + shift - i : yabai -m config top_padding 10
+
 # close focused window
 alt - w : yabai -m window --close
 
