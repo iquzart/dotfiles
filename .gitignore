@@ -1,7 +1,6 @@
-.DS_Store
-backups/
-sketchybar-backup/
-*backups/
-iterm2/
-sketchybar/sensitive_vars.sh
-nvim-lazy-customized/
+iterm2
+fish
+containers
+backup
+znt
+dotfiles
