@@ -5,7 +5,7 @@ return {
     cmd = { "ToggleTerm" },
     keys = {
       {
-        "<leader>Tf",
+        "<c-/>",
         function()
           local count = vim.v.count1
           require("toggleterm").toggle(count, 0, LazyVim.root.get(), "float")
