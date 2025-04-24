@@ -3,6 +3,10 @@
 # Generate Hex Based Password
 #
 
+# Set color
+blue='\033[1;34m'
+reset='\033[0m'
+
 echo "🔐 Secure Hex Password Generator"
 
 read -p "Enter number of bytes for password (default 16): " length
@@ -10,7 +14,7 @@ length=${length:-16}
 
 password=$(openssl rand -hex "$length")
 echo ""
-echo "Generated Password: $password"
+echo -e "Generated Password: ${blue}${password}${reset}"
 
 # Each byte = 8 bits = 256 possibilities = 8 bits of entropy
 entropy_bits=$((length * 8))
