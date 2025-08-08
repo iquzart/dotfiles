@@ -2,7 +2,7 @@ return {
   "iquzart/toggleword.nvim",
   config = function()
     require("toggleword").setup({
-      key = "<leader>ct", -- optional, default <leader>tt
+      key = "<leader>tt", -- optional, defaults to <leader>tt
     })
   end,
 }
