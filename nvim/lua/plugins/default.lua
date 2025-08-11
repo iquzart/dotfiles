@@ -9,16 +9,6 @@ if true then return {} end
 -- * disable/enabled LazyVim plugins
 -- * override the configuration of LazyVim plugins
 return {
-  -- add gruvbox
-  { "ellisonleao/gruvbox.nvim" },
-
-  -- Configure LazyVim to load gruvbox
-  {
-    "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "gruvbox",
-    },
-  },
 
   -- change trouble config
   {
@@ -197,8 +187,6 @@ return {
         "shellcheck",
         "shfmt",
         "flake8",
-        "gopls",
-        "helm-ls",
         "ansible-language-server",
         "ansible-lint",
         "azure-pipelines-language-server",
