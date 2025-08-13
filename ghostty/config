@@ -1,0 +1,42 @@
+# Theme
+theme = dark:tokyonight,light:tokyonight-day
+font-family = "MesloLGS NF"
+font-synthetic-style = false
+font-size = 13
+background-opacity = 0.90
+background-blur-radius = 20
+
+# Remove titlebar completely
+macos-titlebar-style = hidden
+title = ""
+
+# Window
+window-height = 45
+window-width = 180
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-title
+
+# Quick Terminal
+quick-terminal-position = center
+quick-terminal-animation-duration = 0
+
+# Misc
+confirm-close-surface = true
+macos-option-as-alt = true
+clipboard-paste-protection = false
+clipboard-paste-bracketed-safe = true
+
+# The following keybindings are required to make "Option / Alt + j" and
+# "Option / Alt + k" work as expected on macOS. They are not required when
+# using the "macos-option-as-alt" option.
+# keybind = alt+j=esc:j
+# keybind = alt+k=esc:k
+
+# If the "macos-option-as-alt" option is "true", set a keybinding for
+# "Option / Alt + n" to be able to use the Tilde ("~") character.
+# keybind = alt+n=text:~
+
+
