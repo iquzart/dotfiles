@@ -201,6 +201,7 @@ return {
         "terraform-ls",
         "terraform",
         "yamllint",
+        "gopls",
       },
     },
   },
