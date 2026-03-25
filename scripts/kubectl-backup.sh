@@ -25,6 +25,18 @@ sanitize_for_filename() {
   printf '%s' "$1" | sed -E 's#[^A-Za-z0-9._-]+#-#g'
 }
 
+is_excluded_resource_type() {
+  local resource_type="$1"
+
+  case "$resource_type" in
+  events | events.events.k8s.io)
+    return 0
+    ;;
+  esac
+
+  return 1
+}
+
 build_output_file() {
   local output_dir="$1"
   local raw_type="$2"
@@ -81,7 +93,7 @@ backup_resource_type() {
     fi
   done <<<"$resource_names"
 
-  if (( count > 0 )); then
+  if ((count > 0)); then
     log "Completed ${resource_type}: ${count} resource(s)."
   fi
 }
@@ -124,6 +136,11 @@ main() {
 
   for resource_type in "${resource_types[@]}"; do
     if [[ -z "$resource_type" ]]; then
+      continue
+    fi
+
+    if is_excluded_resource_type "$resource_type"; then
+      log "Skipping ${resource_type}: excluded from backup."
       continue
     fi
 
