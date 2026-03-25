@@ -1,14 +1,14 @@
 return {
   "nickjvandyke/opencode.nvim",
   version = "*",
-  lazy = false, -- ensure config loads
+  lazy = false,
 
   dependencies = {
     {
       "folke/snacks.nvim",
       optional = true,
       opts = {
-        input = {},
+        input = {}, -- Enhances `ask()`
         picker = {
           actions = {
             opencode_send = function(...)
@@ -28,31 +28,17 @@ return {
   },
 
   config = function()
-    -- -- ENV
-    -- local openai_key = os.getenv("AZURE_OPENAI_API_KEY")
-    -- local openai_url = os.getenv("AZURE_OPENAI_BASE_URL")
+    -- OpenAI environment
+    local openai_key = os.getenv("OPENAI_API_KEY")
+    local openai_url = os.getenv("OPENAI_BASE_URL")
 
     ---@type opencode.Opts
     vim.g.opencode_opts = {
-      -- -- 🔌 Providers
-      -- provider = {
-      --   -- Local model (fast, default)
-      --   ollama = {
-      --     endpoint = "http://127.0.0.1:11434",
-      --     model = "qwen2.5-coder:7b",
-      --   },
-      --
-      --   -- OpenAI fallback (GPT-5)
-      --   openai = {
-      --     api_key = openai_key,
-      --     base_url = openai_url,
-      --     model = "gpt-5.4", -- change to "gpt-5-mini" if needed
-      --   },
-      -- },
-
-      -- -- Routing
-      -- default_provider = "ollama",
-      -- fallback_provider = "openai",
+      server = {
+        url = openai_url, -- OpenAI endpoint
+        api_key = openai_key, -- OpenAI key
+        model = "gpt-5.4", -- your deployed GPT-5 model
+      },
 
       -- Optional tuning
       context = {
@@ -103,25 +89,5 @@ return {
     vim.keymap.set("n", "<leader>cod", function()
       require("opencode").command("session.half.page.down")
     end, { desc = "OpenCode Scroll Down" })
-
-    -- -- =========================
-    -- -- ⚡ Optional power keys
-    -- -- =========================
-    --
-    -- -- Force GPT-5 (cloud)
-    -- vim.keymap.set("n", "<leader>cog", function()
-    --   require("opencode").ask("@this: deep analysis, use best reasoning", {
-    --     provider = "openai",
-    --     submit = true,
-    --   })
-    -- end, { desc = "Force GPT-5" })
-    --
-    -- -- Force local (Ollama)
-    -- vim.keymap.set("n", "<leader>col", function()
-    --   require("opencode").ask("@this: ", {
-    --     provider = "ollama",
-    --     submit = true,
-    --   })
-    -- end, { desc = "Force local model" })
   end,
 }
