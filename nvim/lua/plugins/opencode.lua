@@ -48,6 +48,11 @@ return {
       behavior = {
         auto_suggestions = true,
       },
+
+      -- Always ask for permission before making edits
+      permissions = {
+        ask_before_edit = true,
+      },
     }
 
     vim.o.autoread = true
