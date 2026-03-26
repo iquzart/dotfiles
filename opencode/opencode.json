@@ -15,10 +15,13 @@
           "name": "Qwen3 8b-16k",
           "tools": true,
           "reasoning": false,
-          "vision": false,
-          "options": {
-            "num_ctx": 16384
-          }
+          "vision": false
+        },
+        "qwen3-8b-optimized:v1.0.0": {
+          "name": "Qwen3 8b Optimized v1.0.0",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
         }
       },
       "name": "Ollama (local)",
@@ -29,5 +32,5 @@
       }
     }
   },
-  "model": "qwen3:8b-16k"
+  "model": "qwen3-8b-optimized:v1.0.0"
 }
