@@ -39,7 +39,7 @@
         "omnicoder:optimized": {
           "name": "Omnicoder Optimized",
           "tools": true,
-          "reasoning": true,
+          "reasoning": false,
           "vision": false
         },
         "qwen25coder:stable": {
@@ -63,7 +63,7 @@
         "qwen35:precision": {
           "name": "Qwen3.5 Precision",
           "tools": true,
-          "reasoning": true,
+          "reasoning": false,
           "vision": false
         }
       }
