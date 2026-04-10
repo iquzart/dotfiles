@@ -3,9 +3,28 @@
   "permission": {
     "edit": "ask",
     "bash": {
-      "*": "allow",
+      "ls": "allow",
+      "pwd": "allow",
+      "whoami": "allow",
+      "cat *": "allow",
+      "echo *": "allow",
+      "grep *": "allow",
+      "find *": "allow",
+      "curl *": "ask",
+      "wget *": "ask",
+      "bash *": "ask",
+      "sh *": "ask",
+      "python *": "ask",
+      "node *": "ask",
+      "sudo *": "ask",
+      "rm *": "deny",
       "rm -rf *": "deny",
-      "sudo *": "ask"
+      "dd *": "deny",
+      "mkfs*": "deny",
+      "shutdown*": "deny",
+      "reboot*": "deny",
+      "chmod 777 *": "deny",
+      ":(){ :|:& };:": "deny"
     }
   },
   "provider": {
@@ -17,26 +36,26 @@
         "thinking": false
       },
       "models": {
-        "qwen25:fast": {
-          "name": "Qwen2.5 Fast",
+        "omnicoder:optimized": {
+          "name": "Omnicoder Optimized",
           "tools": true,
-          "reasoning": false,
+          "reasoning": true,
           "vision": false
         },
         "qwen25coder:stable": {
           "name": "Qwen2.5-coder Stable",
           "tools": true,
-          "reasoning": false,
+          "reasoning": true,
           "vision": false
         },
         "qwen3:balanced": {
           "name": "Qwen3 Balanced",
           "tools": true,
-          "reasoning": true,
+          "reasoning": false,
           "vision": false
         },
-        "qwen35:fast": {
-          "name": "Qwen3.5 Fast",
+        "qwen35:balanced": {
+          "name": "Qwen3.5 Balanced",
           "tools": true,
           "reasoning": false,
           "vision": false
