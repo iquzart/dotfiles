@@ -1,7 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "permission": {
-    "edit": "ask",
+    "edit": "allow",
     "bash": {
       "ls": "allow",
       "pwd": "allow",
@@ -13,18 +13,23 @@
       "curl *": "ask",
       "wget *": "ask",
       "bash *": "ask",
-      "sh *": "ask",
-      "python *": "ask",
       "node *": "ask",
       "sudo *": "ask",
       "rm *": "deny",
       "rm -rf *": "deny",
-      "dd *": "deny",
       "mkfs*": "deny",
       "shutdown*": "deny",
       "reboot*": "deny",
       "chmod 777 *": "deny",
-      ":(){ :|:& };:": "deny"
+      ":(){ :|:& };:": "deny",
+      "ls .git*": "deny",
+      "ls */.git*": "deny",
+      "cat .git*": "deny",
+      "cat */.git*": "deny",
+      "find .git*": "deny",
+      "find */.git*": "deny",
+      "grep .git*": "deny",
+      "grep */.git*": "deny",
     }
   },
   "provider": {
@@ -36,17 +41,19 @@
         "thinking": false
       },
       "models": {
-        "omnicoder:optimized": {
-          "name": "Omnicoder Optimized",
+        "gemma4:e4b": {
+          "name": "Gemma4 e4b (Coding Default)",
           "tools": true,
           "reasoning": false,
-          "vision": false
+          "vision": false,
+          "system": "Be concise. No explanations unless asked. Output only code when coding is requested."
         },
-        "qwen25coder:stable": {
-          "name": "Qwen2.5-coder Stable",
+        "gemma4:e2b": {
+          "name": "Gemma4 e2b (Coding Default)",
           "tools": true,
-          "reasoning": true,
-          "vision": false
+          "reasoning": false,
+          "vision": false,
+          "system": "Be concise. No explanations unless asked. Output only code when coding is requested."
         },
         "qwen3:balanced": {
           "name": "Qwen3 Balanced",
@@ -59,15 +66,9 @@
           "tools": true,
           "reasoning": false,
           "vision": false
-        },
-        "qwen35:precision": {
-          "name": "Qwen3.5 Precision",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
         }
       }
     }
   },
-  "model": "qwen3:balanced"
+  "model": "gemma4:e4b"
 }

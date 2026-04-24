@@ -42,11 +42,11 @@ return {
 
       -- Optional tuning
       context = {
-        max_tokens = 4000,
+        max_tokens = 16000,
       },
 
       behavior = {
-        auto_suggestions = false,
+        auto_suggestions = true,
       },
 
       -- Always ask for permission before making edits
