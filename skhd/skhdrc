@@ -1,7 +1,7 @@
 
 
 # Open Iterm2
-cmd - return : osascript -e 'tell application "iTerm2" to create window with default profile command ""' || open -na iTerm
+cmd - return : osascript -e 'tell application "iTerm2" to create window with default profile command ""' || open -na Ghostty
 
 # open Safari
 cmd + shift - return : osascript -e 'tell application "Safari" to make new document'

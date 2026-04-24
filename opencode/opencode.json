@@ -1,0 +1,74 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "ls": "allow",
+      "pwd": "allow",
+      "whoami": "allow",
+      "cat *": "allow",
+      "echo *": "allow",
+      "grep *": "allow",
+      "find *": "allow",
+      "curl *": "ask",
+      "wget *": "ask",
+      "bash *": "ask",
+      "node *": "ask",
+      "sudo *": "ask",
+      "rm *": "deny",
+      "rm -rf *": "deny",
+      "mkfs*": "deny",
+      "shutdown*": "deny",
+      "reboot*": "deny",
+      "chmod 777 *": "deny",
+      ":(){ :|:& };:": "deny",
+      "ls .git*": "deny",
+      "ls */.git*": "deny",
+      "cat .git*": "deny",
+      "cat */.git*": "deny",
+      "find .git*": "deny",
+      "find */.git*": "deny",
+      "grep .git*": "deny",
+      "grep */.git*": "deny",
+    }
+  },
+  "provider": {
+    "ollama": {
+      "name": "Ollama (local)",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1",
+        "thinking": false
+      },
+      "models": {
+        "gemma4:e4b": {
+          "name": "Gemma4 e4b (Coding Default)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false,
+          "system": "Be concise. No explanations unless asked. Output only code when coding is requested."
+        },
+        "gemma4:e2b": {
+          "name": "Gemma4 e2b (Coding Default)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false,
+          "system": "Be concise. No explanations unless asked. Output only code when coding is requested."
+        },
+        "qwen3:balanced": {
+          "name": "Qwen3 Balanced",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        },
+        "qwen35:balanced": {
+          "name": "Qwen3.5 Balanced",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        }
+      }
+    }
+  },
+  "model": "gemma4:e4b"
+}
