@@ -1,0 +1,452 @@
+{
+  // ============================================================
+  // opencode.jsonc — AI Coding + Terminal Assistant
+  // Place at: ~/.config/opencode/opencode.jsonc
+  // Docs: https://opencode.ai/docs
+  // ============================================================
+  "$schema": "https://opencode.ai/config.json",
+  // ============================================================
+  // GENERAL
+  // ============================================================
+  "shell": "/bin/bash",
+  "logLevel": "WARN",
+  "share": "disabled",
+  "autoupdate": "notify",
+  "snapshot": true,
+  // ============================================================
+  // DEFAULT AGENT & MODELS
+  // router is always the entry point
+  // ============================================================
+  "default_agent": "core",
+  "model": "qwen3:balanced",
+  "small_model": "ollama/gemma4:e2b",
+  // ============================================================
+  // SKILLS
+  // Loaded on demand per agent — never global
+  // Place skill files at: ~/.config/opencode/skills/
+  // ============================================================
+  "skills": {
+    "paths": [
+      "~/.config/opencode/skills"
+    ]
+  },
+  // ============================================================
+  // PROVIDERS
+  // ============================================================
+  "provider": {
+    // ----------------------------------------------------------
+    // LOCAL: Ollama
+    // Start: ollama serve
+    // Pull:  ollama pull gemma4:e4b && ollama pull qwen3:balanced
+    // ----------------------------------------------------------
+    "ollama": {
+      "name": "Ollama (Local)",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1",
+        "thinking": false
+      },
+      "models": {
+        // Primary coder — best local quality
+        "gemma4:e4b": {
+          "name": "Gemma4 4B (Coder)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        },
+        // Fast model — router and quick tasks
+        "gemma4:e2b": {
+          "name": "Gemma4 2B (Router/Fast)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        },
+        // Reasoning — complex infra, debugging
+        "qwen3:balanced": {
+          "name": "Qwen3 Balanced (Reasoning)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        },
+        // Extended reasoning — architecture, hard problems
+        "qwen35:balanced": {
+          "name": "Qwen3.5 Balanced (Deep Reasoning)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        }
+      }
+    },
+    // ----------------------------------------------------------
+    // FREE PUBLIC: OpenRouter
+    // Get free key: https://openrouter.ai
+    // Export: export OPENROUTER_API_KEY=sk-or-...
+    // Used for: docs agent (large context, writing quality)
+    // ----------------------------------------------------------
+    "openrouter": {
+      "name": "OpenRouter (Free Public)",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://openrouter.ai/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}"
+      },
+      "models": {
+        // Large context — runbooks, ADRs, long docs
+        "meta-llama/llama-4-scout:free": {
+          "name": "Llama 4 Scout (Free)",
+          "tools": true,
+          "reasoning": false,
+          "vision": true
+        },
+        // Efficient writing — READMEs, changelogs, specs
+        "mistralai/mistral-small-3.2-24b-instruct:free": {
+          "name": "Mistral Small 3.2 (Free)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        }
+      }
+    },
+    // ----------------------------------------------------------
+    // PAID: OpenAI — escalation only, uncomment when needed
+    // Export: export OPENAI_API_KEY=sk-...
+    // ----------------------------------------------------------
+    "openai": {
+      "name": "OpenAI (Escalation)",
+      "npm": "@ai-sdk/openai",
+      "options": {
+        "apiKey": "${OPENAI_API_KEY}"
+      },
+      "models": {
+        // Best cost/quality — complex code, hard reviews
+        "gpt-4o-mini": {
+          "name": "GPT-4o Mini",
+          "tools": true,
+          "reasoning": false,
+          "vision": true
+        },
+        // Deep reasoning — architecture decisions
+        "o4-mini": {
+          "name": "o4 Mini (Reasoning)",
+          "tools": true,
+          "reasoning": true,
+          "vision": false
+        }
+      }
+    }
+  },
+  // ============================================================
+  // GLOBAL PERMISSIONS
+  // Reads open. Writes/exec gated. Secrets always denied.
+  // Agent-level permissions override these where needed.
+  // ============================================================
+  "permission": {
+    "read": "allow",
+    "edit": "ask",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "lsp": "allow",
+    "codesearch": "allow",
+    "webfetch": "ask",
+    "websearch": "ask",
+    "todowrite": "allow",
+    "bash": {
+      // --- Safe read-only ---
+      "ls *": "allow",
+      "ls -la *": "allow",
+      "pwd": "allow",
+      "whoami": "allow",
+      "echo *": "allow",
+      "cat *": "allow",
+      "grep *": "allow",
+      "find *": "allow",
+      "which *": "allow",
+      "env": "allow",
+      "uname *": "allow",
+      "date": "allow",
+      "uptime": "allow",
+      "ps *": "allow",
+      "top -bn1": "allow",
+      "df *": "allow",
+      "du *": "allow",
+      "free *": "allow",
+      "lsof *": "allow",
+      "jq *": "allow",
+      "awk *": "allow",
+      "sed *": "allow",
+      "cut *": "allow",
+      "sort *": "allow",
+      "uniq *": "allow",
+      "wc *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "tr *": "allow",
+      "curl -s *": "allow",
+      "curl --silent *": "allow",
+      "dig *": "allow",
+      "ping -c *": "allow",
+      // --- Kubernetes read-only ---
+      "kubectl get *": "allow",
+      "kubectl describe *": "allow",
+      "kubectl logs *": "allow",
+      "kubectl explain *": "allow",
+      "kubectl top *": "allow",
+      "kubectl diff *": "allow",
+      "kubectl version *": "allow",
+      "kubectl cluster-info *": "allow",
+      "kubectl api-resources *": "allow",
+      "kubectl events *": "allow",
+      "kubectl auth *": "allow",
+      // --- Helm read-only ---
+      "helm list *": "allow",
+      "helm get *": "allow",
+      "helm history *": "allow",
+      "helm lint *": "allow",
+      "helm template *": "allow",
+      "helm show *": "allow",
+      "helm search *": "allow",
+      "helm version *": "allow",
+      // --- Kind read-only ---
+      "kind get *": "allow",
+      "kind export *": "allow",
+      // --- Git read-only ---
+      "git status": "allow",
+      "git log *": "allow",
+      "git diff *": "allow",
+      "git branch *": "allow",
+      "git show *": "allow",
+      "git remote *": "allow",
+      "git stash list": "allow",
+      "git tag *": "allow",
+      // --- Docker read-only ---
+      "docker ps *": "allow",
+      "docker images *": "allow",
+      // --- Write/exec: ask ---
+      "npm *": "ask",
+      "pip *": "ask",
+      "go *": "ask",
+      "make *": "ask",
+      "docker build *": "ask",
+      "docker run *": "ask",
+      "docker pull *": "ask",
+      "kubectl apply *": "ask",
+      "kubectl delete *": "ask",
+      "kubectl exec *": "ask",
+      "kubectl port-forward *": "ask",
+      "kubectl rollout *": "ask",
+      "kubectl patch *": "ask",
+      "kubectl create *": "ask",
+      "helm install *": "ask",
+      "helm upgrade *": "ask",
+      "helm uninstall *": "ask",
+      "helm rollback *": "ask",
+      "helm dependency *": "ask",
+      "helm package *": "ask",
+      "kind create *": "ask",
+      "kind delete *": "ask",
+      "kind load *": "ask",
+      "git add *": "ask",
+      "git commit *": "ask",
+      "git push *": "ask",
+      "git merge *": "ask",
+      "git rebase *": "ask",
+      "git reset *": "ask",
+      "git checkout *": "ask",
+      "git fetch *": "ask",
+      "git pull *": "ask",
+      "bash *": "ask",
+      "sh *": "ask",
+      "node *": "ask",
+      "python3 *": "ask",
+      "sudo *": "ask",
+      "chmod *": "ask",
+      "chown *": "ask",
+      "cp *": "ask",
+      "mv *": "ask",
+      "mkdir *": "ask",
+      "touch *": "ask",
+      "wget *": "ask",
+      // --- Always deny: destructive ---
+      "rm *": "deny",
+      "rm -rf *": "deny",
+      "rmdir *": "deny",
+      "mkfs *": "deny",
+      "dd *": "deny",
+      "fdisk *": "deny",
+      "shutdown *": "deny",
+      "reboot *": "deny",
+      "halt *": "deny",
+      "poweroff *": "deny",
+      "chmod 777 *": "deny",
+      "chmod -R 777 *": "deny",
+      ":(){ :|:& };:": "deny",
+      // --- Always deny: secret exposure ---
+      "cat ~/.ssh/*": "deny",
+      "cat ~/.gnupg/*": "deny",
+      "cat ~/.aws/*": "deny",
+      "cat ~/.kube/config": "deny",
+      "env | grep *KEY*": "deny",
+      "env | grep *SECRET*": "deny",
+      "env | grep *TOKEN*": "deny",
+      "env | grep *PASSWORD*": "deny",
+      "git config --global *": "deny",
+      "ls .git*": "deny",
+      "cat .git*": "deny",
+      "find .git*": "deny"
+    }
+  },
+  // ============================================================
+  // AGENTS
+  // Active agents: router (primary), coder (primary), docs (primary)
+  // Default build/plan agents are disabled.
+  // ============================================================
+  "agent": {
+    // Disable built-in defaults
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    // ----------------------------------------------------------
+    // PRIMARY: ROUTER
+    // Minimal context. Routes to coder or docs. Nothing else.
+    // ----------------------------------------------------------
+    "router": {
+      "mode": "primary",
+      "model": "ollama/gemma4:e2b",
+      "description": "Core orchestrator. Routes requests to coder or docs. Always the starting point.",
+      "color": "#4A9EFF",
+      "steps": 5,
+      "prompt": "~/.config/opencode/agents/router.md",
+      "permission": {
+        "read": "allow",
+        "edit": "deny",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "todowrite": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "bash": "deny"
+      }
+    },
+    // ----------------------------------------------------------
+    // PRIMARY: CODER
+    // Full-stack: API development + infrastructure (Helm, K8s, CI)
+    // Skills loaded on demand from ~/.config/opencode/skills/
+    // ----------------------------------------------------------
+    "coder": {
+      "mode": "primary",
+      "model": "ollama/gemma4:e4b",
+      "description": "Full-stack coder. API development, infrastructure-as-code, Helm charts, CI/CD pipelines.",
+      "color": "#22C55E",
+      "steps": 40,
+      "prompt": "~/.config/opencode/agents/coder.md",
+      "skills": [
+        // Skills auto-loaded when their keyword triggers match.
+        // Add skill filenames (without .md) to load them always,
+        // or leave empty and reference them in the prompt.
+        // Currently loaded on-demand via keyword detection.
+      ],
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "lsp": "allow",
+        "codesearch": "allow",
+        "todowrite": "allow",
+        "task": "allow",
+        "webfetch": "ask",
+        "websearch": "ask",
+        "bash": {
+          "ls *": "allow",
+          "cat *": "allow",
+          "grep *": "allow",
+          "find *": "allow",
+          "git status": "allow",
+          "git diff *": "allow",
+          "git log *": "allow",
+          "git show *": "allow",
+          "git branch *": "allow",
+          "helm lint *": "allow",
+          "helm template *": "allow",
+          "helm show *": "allow",
+          "helm list *": "allow",
+          "helm get *": "allow",
+          "kubectl get *": "allow",
+          "kubectl describe *": "allow",
+          "kubectl diff *": "allow",
+          "kubectl explain *": "allow",
+          "kind get *": "allow",
+          "docker ps *": "allow",
+          "docker images *": "allow",
+          "npm run *": "ask",
+          "npm test *": "ask",
+          "npm install *": "ask",
+          "go build *": "ask",
+          "go test *": "ask",
+          "make *": "ask",
+          "python3 *": "ask",
+          "node *": "ask",
+          "helm install *": "ask",
+          "helm upgrade *": "ask",
+          "helm dependency *": "ask",
+          "kubectl apply *": "ask",
+          "kubectl exec *": "ask",
+          "docker build *": "ask",
+          "git add *": "ask",
+          "git commit *": "ask",
+          "git push *": "ask",
+          "rm *": "deny",
+          "rm -rf *": "deny",
+          "sudo *": "deny",
+          "chmod 777 *": "deny",
+          "cat ~/.ssh/*": "deny",
+          "cat ~/.aws/*": "deny",
+          "cat ~/.kube/config": "deny"
+        }
+      }
+    },
+    // ----------------------------------------------------------
+    // PRIMARY: DOCS
+    // READMEs, runbooks, ADRs, postmortems, docstrings, changelogs.
+    // Uses free public models — no local model needed.
+    // ----------------------------------------------------------
+    "docs": {
+      "mode": "primary",
+      "model": "openrouter/meta-llama/llama-4-scout:free",
+      "description": "Documentation agent. READMEs, runbooks, ADRs, postmortems, docstrings, Confluence pages.",
+      "color": "#A78BFA",
+      "steps": 15,
+      "prompt": "~/.config/opencode/agents/docs.md",
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "todowrite": "allow",
+        "task": "allow",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "bash": {
+          "cat *": "allow",
+          "ls *": "allow",
+          "grep *": "allow",
+          "find *": "allow",
+          "git log *": "allow",
+          "git diff *": "allow",
+          "git show *": "allow",
+          "git tag *": "allow",
+          "rm *": "deny",
+          "sudo *": "deny"
+        }
+      }
+    }
+  }
+}
