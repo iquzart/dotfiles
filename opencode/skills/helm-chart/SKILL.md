@@ -1,9 +1,13 @@
-helm_chart
-
-PURPOSE:
-Generate production-grade Helm charts supporting Deployment and StatefulSet workloads with enterprise Kubernetes patterns.
-
 ---
+
+name: helm-chart
+description: Create helm charts
+license: MIT
+compatibility: opencode
+metadata:
+  workflow: github
+---
+
 
 ## EXECUTION MODES
 

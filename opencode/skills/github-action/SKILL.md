@@ -1,9 +1,13 @@
-github_actions
-
-PURPOSE:
-Generate production-grade GitHub Actions workflows for CI/CD pipelines covering build, test, lint, security scanning, container image publishing, and Kubernetes/Helm deployments.
-
 ---
+
+name: github-actions
+description: Generate production-grade GitHub Actions workflows
+license: MIT
+compatibility: opencode
+metadata:
+  workflow: github
+---
+
 
 ## EXECUTION MODES
 
