@@ -1,6 +1,6 @@
 ---
 description: "Full-stack coder. API development, infrastructure-as-code, Helm charts, CI/CD pipelines."
-mode: "primary"
+mode: "subagent"
 color: "#22C55E"
 steps: 40
 skills: []
