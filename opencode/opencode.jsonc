@@ -115,7 +115,8 @@
       "name": "OpenAI (Escalation)",
       "npm": "@ai-sdk/openai",
       "options": {
-        "apiKey": "${OPENAI_API_KEY}"
+        "apiKey": "${OPENAI_API_KEY}",
+        "baseURL": "${OPENAI_BASE_URL}"
       },
       "models": {
         // Best cost/quality — complex code, hard reviews
@@ -304,7 +305,7 @@
   "agent": {
     // Disable built-in defaults
     "build": {
-      "disable": true
+      "disable": false
     },
     "plan": {
       "disable": true

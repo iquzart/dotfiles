@@ -1,6 +1,6 @@
 ---
 description: "Documentation agent. READMEs, runbooks, ADRs, postmortems, docstrings, Confluence pages."
-mode: "subagent"
+mode: "all"
 model: "openrouter/meta-llama/llama-4-scout:free"
 color: "#A78BFA"
 steps: 15
