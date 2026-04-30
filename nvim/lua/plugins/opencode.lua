@@ -37,12 +37,12 @@ return {
       server = {
         url = openai_url, -- OpenAI endpoint
         api_key = openai_key, -- OpenAI key
-        model = "gpt-5.4", -- your deployed GPT-5 model
+        model = "gpt-5.3-codex",
       },
 
       -- Optional tuning
       context = {
-        max_tokens = 16000,
+        max_tokens = 32000,
       },
 
       behavior = {
