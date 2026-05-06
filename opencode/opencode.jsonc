@@ -17,7 +17,7 @@
   // DEFAULT AGENT & MODELS
   // router is always the entry point
   // ============================================================
-  "default_agent": "core",
+  "default_agent": "build",
   "model": "qwen3:balanced",
   "small_model": "ollama/gemma4:e2b",
   // ============================================================
@@ -309,6 +309,19 @@
     },
     "plan": {
       "disable": true
+    }
+  },
+  "mcp": {
+    "grafana": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-grafana"
+      ],
+      "env": {
+        "GRAFANA_URL": "${env:GRAFANA_URL}",
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
     }
   }
 }
