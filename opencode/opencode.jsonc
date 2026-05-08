@@ -61,6 +61,13 @@
           "reasoning": false,
           "vision": false
         },
+        // Fast model — router and quick tasks
+        "qwen25coder:stable": {
+          "name": "Qwen2.5 Coder 7B (Router/Fast)",
+          "tools": true,
+          "reasoning": false,
+          "vision": false
+        },
         // Reasoning — complex infra, debugging
         "qwen3:balanced": {
           "name": "Qwen3 Balanced (Reasoning)",

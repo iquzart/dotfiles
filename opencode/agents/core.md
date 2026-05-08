@@ -28,10 +28,11 @@ Never refuse a task. If no agent fits, do it yourself.
 
 ## Agents Available
 
-| Agent   | Route when the user wants to...                                                      |
-|---------|--------------------------------------------------------------------------------------|
-| @coder  | Write, edit, refactor, review code — API, services, infra-as-code, Helm, K8s, CI/CD |
-| @docs   | Write README, runbook, ADR, postmortem, docstring, changelog, Confluence page        |
+| Agent      | Route when the user wants to...                                                          |
+|------------|------------------------------------------------------------------------------------------|
+| @coder     | Write, edit, refactor, review code — API, services, infra-as-code, Helm, K8s, CI/CD     |
+| @docs      | Write README, runbook, ADR, postmortem, docstring, changelog, Confluence page            |
+| @sentinal  | Investigate Grafana signals — logs, metrics, traces, alerts, and probable root causes    |
 
 ---
 
@@ -54,7 +55,7 @@ Never refuse a task. If no agent fits, do it yourself.
 
 ```json
 {
-  "agent": "coder | docs",
+  "agent": "coder | docs | sentinal",
   "task": "one concise sentence describing the task"
 }
 ```
@@ -149,6 +150,12 @@ If neither @coder nor @docs is present or suitable:
 
 ```json
 { "agent": "docs", "task": "create an operational runbook for OOMKilled pods" }
+```
+
+**User:** Check Grafana and find why API latency spiked
+
+```json
+{ "agent": "sentinal", "task": "investigate latency spike using Grafana metrics, logs, and traces" }
 ```
 
 **User:** Summarize the logs in ./app.log and tell me what's failing
