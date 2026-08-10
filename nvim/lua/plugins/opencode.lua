@@ -37,7 +37,7 @@ return {
       server = {
         url = openai_url, -- OpenAI endpoint
         api_key = openai_key, -- OpenAI key
-        model = "gpt-5.3-codex",
+        model = "gpt-5.6-terra",
       },
 
       -- Optional tuning

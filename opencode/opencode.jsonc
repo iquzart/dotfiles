@@ -113,35 +113,35 @@
           "vision": false
         }
       }
+    },
+    // ----------------------------------------------------------
+    // PAID: OpenAI — escalation only, uncomment when needed
+    // Export: export OPENAI_API_KEY=sk-...
+    // ----------------------------------------------------------
+    "openai": {
+      "name": "OpenAI (AI Hub)",
+      "npm": "@ai-sdk/openai",
+      "options": {
+        "apiKey": "{env:OPENAI_API_KEY}",
+        "baseURL": "{env:OPENAI_BASE_URL}"
+      },
+      "models": {
+        // Best cost/quality — complex code, hard reviews
+        "gpt-5.6-terra": {
+          "name": "GTP 5.6 Terra",
+          "tools": true,
+          "reasoning": true,
+          "vision": true
+        },
+        // Deep reasoning — architecture decisions
+        "gpt-5.6-luna": {
+          "name": "GTP 5.6 Luna",
+          "tools": true,
+          "reasoning": true,
+          "vision": false
+        }
+      }
     }
-    // // ----------------------------------------------------------
-    // // PAID: OpenAI — escalation only, uncomment when needed
-    // // Export: export OPENAI_API_KEY=sk-...
-    // // ----------------------------------------------------------
-    // "openai": {
-    //   "name": "OpenAI (Escalation)",
-    //   "npm": "@ai-sdk/openai",
-    //   "options": {
-    //     "apiKey": "${OPENAI_API_KEY}",
-    //     "baseURL": "${OPENAI_BASE_URL}"
-    //   },
-    //   "models": {
-    //     // Best cost/quality — complex code, hard reviews
-    //     "gpt-4o-mini": {
-    //       "name": "GPT-4o Mini",
-    //       "tools": true,
-    //       "reasoning": false,
-    //       "vision": true
-    //     },
-    //     // Deep reasoning — architecture decisions
-    //     "o4-mini": {
-    //       "name": "o4 Mini (Reasoning)",
-    //       "tools": true,
-    //       "reasoning": true,
-    //       "vision": false
-    //     }
-    //   }
-    // }
   },
   // ============================================================
   // GLOBAL PERMISSIONS
@@ -328,6 +328,18 @@
       "env": {
         "GRAFANA_URL": "${env:GRAFANA_URL}",
         "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
+    },
+    "mcp-atlassian": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "mcp-atlassian"
+      ],
+      "env": {
+        "JIRA_URL": "${env:JIRA_URL}",
+        "JIRA_USERNAME": "${env:JIRA_USERNAME}",
+        "JIRA_API_TOKEN": "${env:JIRA_API_TOKEN}"
       }
     }
   }

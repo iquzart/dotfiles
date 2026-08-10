@@ -93,7 +93,7 @@ source "$ITEM_DIR/k8s_context.sh"
 source "$ITEM_DIR/sol.sh"
 source "$ITEM_DIR/btc.sh"
 source "$ITEM_DIR/fet.sh"
-source "$ITEM_DIR/ada.sh"
+# source "$ITEM_DIR/ada.sh"
 # source "$ITEM_DIR/vault.sh"
 
 sketchybar --hotload on
