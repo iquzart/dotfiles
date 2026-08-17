@@ -21,6 +21,12 @@
   "model": "qwen3:balanced",
   "small_model": "ollama/gemma4:e2b",
   // ============================================================
+  // Plugins
+  // ============================================================
+  "plugin": [
+    "opencode-plugin-openspec"
+  ],
+  // ============================================================
   // SKILLS
   // Loaded on demand per agent — never global
   // Place skill files at: ~/.config/opencode/skills/
