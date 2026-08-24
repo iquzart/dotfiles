@@ -37,6 +37,32 @@
     ]
   },
   // ============================================================
+  // MCP SERVERS
+  // Grafana and Atlassian tools are enabled for all sessions.
+  // Required environment variables must be set before use.
+  // ============================================================
+  "mcp": {
+    "grafana": {
+      "type": "local",
+      "command": ["uvx", "mcp-grafana"],
+      "enabled": true,
+      "environment": {
+        "GRAFANA_URL": "{env:GRAFANA_URL}",
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
+    },
+    "mcp-atlassian": {
+      "type": "local",
+      "command": ["uvx", "mcp-atlassian"],
+      "enabled": true,
+      "environment": {
+        "JIRA_URL": "{env:JIRA_URL}",
+        "JIRA_USERNAME": "{env:JIRA_USERNAME}",
+        "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}"
+      }
+    }
+  },
+  // ============================================================
   // PROVIDERS
   // ============================================================
   "provider": {
@@ -324,8 +350,6 @@
       "disable": true
     }
   },
-  // Grafana and Atlassian MCP servers are intentionally excluded from the
-  // default profile. Use profiles/platform.jsonc for operational sessions.
   "tool_output": {
     "max_lines": 200,
     "max_bytes": 8192

@@ -1,5 +1,5 @@
 ---
-description: Investigate or plan AKS and Kubernetes work.
+description: Investigate or plan Kubernetes work.
 agent: platform-engineer
 ---
 
