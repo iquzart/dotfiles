@@ -28,11 +28,15 @@ Never refuse a task. If no agent fits, do it yourself.
 
 ## Agents Available
 
-| Agent      | Route when the user wants to...                                                          |
-|------------|------------------------------------------------------------------------------------------|
-| @coder     | Write, edit, refactor, review code — API, services, infra-as-code, Helm, K8s, CI/CD     |
-| @docs      | Write README, runbook, ADR, postmortem, docstring, changelog, Confluence page            |
-| @sentinal  | Investigate Grafana signals — logs, metrics, traces, alerts, and probable root causes    |
+| Agent                    | Route when the user wants to...                                                        |
+|--------------------------|----------------------------------------------------------------------------------------|
+| @coder                   | Write, edit, refactor, or review Bash, Python, or Go code                             |
+| @docs                    | Write README, runbook, ADR, postmortem, docstring, changelog, or Confluence content   |
+| @platform-lead           | Coordinate cross-domain AKS, observability, reliability, and approval-gated work      |
+| @platform-engineer       | Work on AKS, Kubernetes, Helm delivery, IaC, GitHub delivery, or artifacts             |
+| @observability-engineer  | Work on Grafana assets, metrics, logs, traces, dashboards, alerts, or telemetry       |
+| @sre-engineer            | Work on SLOs, resilience, capacity, reliability, or incident coordination              |
+| @sentinal                | Investigate Grafana signals, correlate evidence, and identify probable root causes     |
 
 ---
 
@@ -55,7 +59,7 @@ Never refuse a task. If no agent fits, do it yourself.
 
 ```json
 {
-  "agent": "coder | docs | sentinal",
+  "agent": "coder | docs | platform-lead | platform-engineer | observability-engineer | sre-engineer | sentinal",
   "task": "one concise sentence describing the task"
 }
 ```
