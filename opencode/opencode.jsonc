@@ -15,9 +15,9 @@
   "snapshot": true,
   // ============================================================
   // DEFAULT AGENT & MODELS
-  // router is always the entry point
+  // Platform Lead is the entry point and delegates only when needed.
   // ============================================================
-  "default_agent": "core",
+  "default_agent": "platform-lead",
   "model": "qwen3:balanced",
   "small_model": "ollama/gemma4:e2b",
   // ============================================================
@@ -312,41 +312,27 @@
   },
   // ============================================================
   // AGENTS
-  // Active agents: router (primary), coder (primary), docs (primary)
-  // Default build/plan agents are disabled.
+  // Platform Lead and Coder are primary agents.
+  // Platform, observability, and SRE specialists remain subagents.
   // ============================================================
   "agent": {
     // Disable built-in defaults
     "build": {
-      "disable": false
+      "disable": true
     },
     "plan": {
       "disable": true
     }
   },
-  "mcp": {
-    "grafana": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "mcp-grafana"
-      ],
-      "env": {
-        "GRAFANA_URL": "${env:GRAFANA_URL}",
-        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
-      }
-    },
-    "mcp-atlassian": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "mcp-atlassian"
-      ],
-      "env": {
-        "JIRA_URL": "${env:JIRA_URL}",
-        "JIRA_USERNAME": "${env:JIRA_USERNAME}",
-        "JIRA_API_TOKEN": "${env:JIRA_API_TOKEN}"
-      }
-    }
+  // Grafana and Atlassian MCP servers are intentionally excluded from the
+  // default profile. Use profiles/platform.jsonc for operational sessions.
+  "tool_output": {
+    "max_lines": 200,
+    "max_bytes": 8192
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "tail_turns": 8
   }
 }

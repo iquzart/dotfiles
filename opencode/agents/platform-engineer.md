@@ -1,6 +1,6 @@
 ---
 description: Container Platform and Kubernetes platform engineer for Helm delivery, Terraform/OpenTofu, GitHub delivery, JFrog, Trivy, and Xray.
-mode: all
+mode: subagent
 color: "#16A34A"
 steps: 10
 permission:

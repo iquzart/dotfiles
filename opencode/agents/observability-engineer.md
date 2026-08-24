@@ -1,6 +1,6 @@
 ---
 description: Observability engineer for Grafana, Prometheus, Thanos, Loki, Promtail, Tempo, dashboards, alerts, and telemetry architecture.
-mode: all
+mode: subagent
 color: "#9333EA"
 steps: 10
 permission:

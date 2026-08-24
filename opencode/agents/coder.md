@@ -1,6 +1,6 @@
 ---
 description: "Application and automation developer for Bash, Python, and Go."
-mode: "all"
+mode: "primary"
 color: "#22C55E"
 permission:
   read: "allow"

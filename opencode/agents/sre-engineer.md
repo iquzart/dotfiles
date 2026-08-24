@@ -1,6 +1,6 @@
 ---
 description: Site reliability engineer for SLOs, incidents, resilience, capacity, runbooks, recovery, and reliability decisions.
-mode: all
+mode: subagent
 color: "#EA580C"
 steps: 10
 permission:
