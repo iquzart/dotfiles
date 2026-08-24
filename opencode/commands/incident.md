@@ -1,6 +1,6 @@
 ---
 description: Investigate a production incident.
-agent: sre-engineer
+agent: reliability-engineer
 ---
 
 Investigate this incident: $ARGUMENTS

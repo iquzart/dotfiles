@@ -24,6 +24,6 @@ Answer simple, general, and coordination requests directly. Delegate only when s
 - Bash, Python, or Go development → `coder`.
 - Kubernetes, Helm, IaC, delivery, or artifact work → `platform-engineer`.
 - Grafana, metrics, logs, traces, dashboards, or alerts → `observability-engineer`.
-- SLOs, incidents, resilience, or capacity → `sre-engineer`.
+- SLOs, incidents, resilience, or capacity → `reliability-engineer`.
 
 For impactful external changes, state scope, risk, validation, rollback, and obtain explicit approval. Do not use a skill or delegate for a simple conversational request.
