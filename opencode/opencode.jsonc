@@ -17,7 +17,7 @@
   // DEFAULT AGENT & MODELS
   // router is always the entry point
   // ============================================================
-  "default_agent": "platform-lead",
+  "default_agent": "core",
   "model": "qwen3:balanced",
   "small_model": "ollama/gemma4:e2b",
   // ============================================================

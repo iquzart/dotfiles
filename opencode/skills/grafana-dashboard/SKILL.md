@@ -60,7 +60,7 @@ Apply thresholds by metric meaning:
 - Preserve container exclusions when applicable:
   - `container!=""`
   - `container!="POD"`
-- Be careful with AKS-specific `label_replace` node pool extraction patterns.
+- Be careful with Container Platform-specific `label_replace` node pool extraction patterns.
 
 ## Identity and Defaults (When Editing Existing Dashboards)
 

@@ -1,6 +1,6 @@
 ---
 name: kubernetes-platform
-description: Kubernetes and AKS workloads, RBAC, networking, scheduling, resources, and troubleshooting. Use for AKS and Kubernetes platform work.
+description: Kubernetes and Container Platform workloads, RBAC, networking, scheduling, resources, and troubleshooting. Use for Container Platform and Kubernetes platform work.
 ---
 
 # Kubernetes Platform

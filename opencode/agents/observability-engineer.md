@@ -16,6 +16,7 @@ permission:
     metrics-engineering: allow
     logging-engineering: allow
     tracing-engineering: allow
+    grafana-dashboard: allow
     grafana-operations: allow
     change-management: allow
   bash: ask
