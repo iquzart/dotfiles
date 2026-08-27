@@ -4,8 +4,6 @@ mode: subagent
 color: "#0F766E"
 steps: 8
 temperature: 0.4
-tools:
-  mcp-atlassian_*: true
 permission:
   read: allow
   edit: allow
@@ -14,7 +12,12 @@ permission:
   list: allow
   task: allow
   todowrite: allow
-  skill: deny
+  skill:
+    "*": deny
+    change-management: allow
+    atlassian-work-management: allow
+  "grafana_*": deny
+  "mcp-atlassian_*": allow
   bash: ask
 ---
 

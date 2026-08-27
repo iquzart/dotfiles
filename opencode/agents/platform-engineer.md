@@ -12,7 +12,16 @@ permission:
   list: allow
   task: allow
   todowrite: allow
-  skill: deny
+  skill:
+    "*": deny
+    infrastructure-development: allow
+    helm-development: allow
+    helm-delivery: allow
+    github-development: allow
+    github-delivery: allow
+    kubernetes-operations: allow
+  "grafana_*": deny
+  "mcp-atlassian_*": deny
   bash:
     "*": ask
     "kubectl get *": allow

@@ -13,6 +13,8 @@ permission:
   task: allow
   todowrite: allow
   skill: deny
+  "grafana_*": deny
+  "mcp-atlassian_*": deny
   bash: deny
   webfetch: ask
   websearch: deny

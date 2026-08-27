@@ -12,7 +12,11 @@ permission:
   list: allow
   task: allow
   todowrite: allow
-  skill: deny
+  skill:
+    "*": deny
+    artifact-security: allow
+  "grafana_*": deny
+  "mcp-atlassian_*": deny
   bash: ask
 ---
 

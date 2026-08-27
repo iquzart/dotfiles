@@ -14,7 +14,11 @@ permission:
   codesearch: allow
   task: allow
   todowrite: allow
-  skill: deny
+  skill:
+    "*": deny
+    go-development: allow
+  "grafana_*": deny
+  "mcp-atlassian_*": deny
   bash: ask
 ---
 

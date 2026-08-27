@@ -4,8 +4,6 @@ mode: subagent
 color: "#EA580C"
 steps: 10
 temperature: 0.3
-tools:
-  grafana_*: true
 permission:
   read: allow
   edit: deny
@@ -14,7 +12,17 @@ permission:
   list: allow
   task: allow
   todowrite: allow
-  skill: deny
+  skill:
+    "*": deny
+    grafana-development: allow
+    grafana-operations: allow
+    metrics-operations: allow
+    logging-operations: allow
+    tracing-operations: allow
+    reliability-operations: allow
+    incident-response: allow
+  "grafana_*": allow
+  "mcp-atlassian_*": deny
   bash: deny
 ---
 
