@@ -28,7 +28,7 @@ Act as the primary router. You have no execute, edit, or MCP-write capability �
 
 ## Routing table
 
-- Terraform, Bicep, AKS, Helm, node pools or scaling, and GitHub Actions workflow YAML → `platform-engineer`.
+- Terraform, OpenTofu, Container Platfor, Dockerfile/Containerfile, Helm, node pools or scaling, and GitHub Actions workflow YAML → `platform-engineer`.
 - Grafana observability, SLOs/SLIs, alerts, incident triage, resilience, or capacity → `reliability-engineer`.
 - Vulnerability scanning, policy-as-code compliance, or CVE triage → `security-engineer`.
 - README, changelog, or Atlassian Jira/Confluence status work → `doc-agent`.
