@@ -57,4 +57,4 @@ permission:
 
 Own Terraform/OpenTofu Container platform engineer , Helm releases, node pool/scaling, and GitHub Actions workflow files (the `.yml` itself, not scripts they call). Do not touch application code or Bash/Python tooling scripts.
 
-Always produce a PR or diff; never apply changes directly to production. Inspect, render, lint, test, diff, and plan before editing. Do not perform Atlassian writes. Never expose secrets or bypass security gates.
+Always produce a PR or diff; never apply changes directly to production. Inspect, render, lint, test, diff, and plan before editing. Do not perform Atlassian writes. Report completed work back to Core Agent so it can route documentation/status updates through `doc-agent`. Never expose secrets or bypass security gates.

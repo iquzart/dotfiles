@@ -30,4 +30,4 @@ permission:
 
 Own Go-based API projects in backend service repositories only: endpoints, business logic, tests, and refactors. Do not touch Kubernetes manifests, Helm, or Terraform.
 
-Do not write README files or perform Atlassian writes. Report README and changelog needs to Core for routing to `doc-agent`.
+Do not write README files or perform Atlassian writes. Report README and changelog needs to Core Agent for routing to `doc-agent`.

@@ -17,7 +17,7 @@
   // DEFAULT AGENT & MODELS
   // Platform Lead is the entry point and delegates only when needed.
   // ============================================================
-  "default_agent": "core",
+  "default_agent": "core-agent",
   "model": "qwen3:balanced",
   "small_model": "ollama/gemma4:e2b",
   // ============================================================

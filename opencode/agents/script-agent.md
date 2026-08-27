@@ -30,4 +30,4 @@ permission:
 
 Own Bash/Python automation and tooling scripts only. Do not touch application code or infrastructure-as-code.
 
-Scripts that touch live infrastructure, including `kubectl`, `az`, or `terraform`, must be flagged for review rather than run. Do not use cloud credentials or perform Atlassian writes. Report README and changelog needs to Core for routing to `doc-agent`.
+Scripts that touch live infrastructure, including `kubectl`, `az`, or `terraform`, must be flagged for review rather than run. Do not use cloud credentials or perform Atlassian writes. Report README and changelog needs to Core Agent for routing to `doc-agent`.
