@@ -1,5 +1,5 @@
 ---
-name: metrics-engineering
+name: metrics-operations
 description: Prometheus, Thanos, PromQL, recording rules, cardinality, ingestion, retention, and metric capacity. Use for metrics work.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: infrastructure-as-code
+name: infrastructure-development
 description: Terraform and OpenTofu modules, state-aware plans, validation, dependencies, and safe infrastructure changes. Use for infrastructure as code work.
 ---
 

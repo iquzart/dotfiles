@@ -1,6 +1,6 @@
 ---
 description: Perform a read-only platform investigation.
-agent: platform-lead
+agent: core
 ---
 
 Investigate: $ARGUMENTS

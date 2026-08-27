@@ -1,5 +1,5 @@
 ---
-name: logging-engineering
+name: logging-operations
 description: Loki, Promtail, LogQL, labels, ingestion, retention, query performance, and log volume. Use for logging work.
 ---
 

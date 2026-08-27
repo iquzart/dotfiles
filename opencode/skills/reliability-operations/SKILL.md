@@ -1,5 +1,5 @@
 ---
-name: reliability-engineering
+name: reliability-operations
 description: SLIs, SLOs, error budgets, capacity, resilience, availability, performance, and failure-mode analysis. Use for reliability work.
 ---
 

@@ -1,6 +1,6 @@
 ---
 
-name: github-actions
+name: github-development
 description: Generate production-grade GitHub Actions workflows
 license: MIT
 compatibility: opencode
@@ -8,6 +8,10 @@ metadata:
   workflow: github
 ---
 
+
+## Scope boundary
+
+Use this skill to author GitHub Actions workflow YAML and action configuration. Use `github-delivery` for environments, branch protection, release orchestration, and deployment governance.
 
 ## EXECUTION MODES
 

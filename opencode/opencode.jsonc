@@ -17,7 +17,7 @@
   // DEFAULT AGENT & MODELS
   // Platform Lead is the entry point and delegates only when needed.
   // ============================================================
-  "default_agent": "platform-lead",
+  "default_agent": "core",
   "model": "qwen3:balanced",
   "small_model": "ollama/gemma4:e2b",
   // ============================================================
@@ -38,13 +38,16 @@
   },
   // ============================================================
   // MCP SERVERS
-  // Grafana and Atlassian tools are enabled for all sessions.
+  // Grafana tools are scoped to reliability-engineer; Atlassian tools are scoped to doc-agent.
   // Required environment variables must be set before use.
   // ============================================================
   "mcp": {
     "grafana": {
       "type": "local",
-      "command": ["uvx", "mcp-grafana"],
+      "command": [
+        "uvx",
+        "mcp-grafana"
+      ],
       "enabled": true,
       "environment": {
         "GRAFANA_URL": "{env:GRAFANA_URL}",
@@ -53,7 +56,10 @@
     },
     "mcp-atlassian": {
       "type": "local",
-      "command": ["uvx", "mcp-atlassian"],
+      "command": [
+        "uvx",
+        "mcp-atlassian"
+      ],
       "enabled": true,
       "environment": {
         "JIRA_URL": "{env:JIRA_URL}",
@@ -338,15 +344,21 @@
   },
   // ============================================================
   // AGENTS
-  // Platform Lead and Coder are primary agents.
-  // Platform, observability, and SRE specialists remain subagents.
+  // Platform Lead is the primary router. Only the six configured
+  // specialists below may be active subagents.
   // ============================================================
   "agent": {
     // Disable built-in defaults
     "build": {
-      "disable": true
+      "disable": false
     },
     "plan": {
+      "disable": true
+    },
+    "explore": {
+      "disable": true
+    },
+    "general": {
       "disable": true
     }
   },

@@ -1,5 +1,5 @@
 ---
-name: tracing-engineering
+name: tracing-operations
 description: Tempo, OpenTelemetry, distributed tracing, sampling, trace queries, and dependency analysis. Use for tracing work.
 ---
 

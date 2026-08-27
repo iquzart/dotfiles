@@ -1,5 +1,5 @@
 ---
-name: kubernetes-platform
+name: kubernetes-operations
 description: Kubernetes and Container Platform workloads, RBAC, networking, scheduling, resources, and troubleshooting. Use for Container Platform and Kubernetes platform work.
 ---
 

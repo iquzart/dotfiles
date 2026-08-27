@@ -1,6 +1,6 @@
 ---
 description: Investigate or plan Grafana telemetry work.
-agent: observability-engineer
+agent: reliability-engineer
 ---
 
 Handle this observability request: $ARGUMENTS

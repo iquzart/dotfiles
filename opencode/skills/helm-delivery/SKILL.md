@@ -5,4 +5,8 @@ description: Helm release lifecycle, values, templates, rendering, upgrades, and
 
 # Helm Delivery
 
+## Scope boundary
+
+Use this skill to manage existing Helm releases across environments, including rollout and rollback. Use `helm-development` to author charts and templates.
+
 Inspect release history, values, rendered manifests, and dependencies. Run lint and template validation. Describe the release, values change, validation, and rollback target before any install, upgrade, uninstall, or rollback approval.

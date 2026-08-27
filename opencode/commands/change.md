@@ -1,6 +1,6 @@
 ---
 description: Prepare a controlled platform change; execution requires approval.
-agent: platform-lead
+agent: core
 ---
 
 Coordinate this controlled change: $ARGUMENTS

@@ -1,9 +1,13 @@
 ---
-name: grafana-dashboard
+name: grafana-development
 description: Grafana dashboard JSON, PromQL, thresholds, colors, and template variables (datasource, namespace, service, interval). Use when creating or editing dashboards in this repo.
 ---
 
 # Grafana Dashboard Skill
+
+## Scope boundary
+
+Use this skill to build and author dashboard artifacts. Use `grafana-operations` to query live data and investigate during incidents.
 
 Use this skill when creating or updating Grafana dashboard JSON files in this repository.
 

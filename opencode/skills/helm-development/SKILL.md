@@ -1,6 +1,6 @@
 ---
 
-name: helm-chart
+name: helm-development
 description: Create helm charts
 license: MIT
 compatibility: opencode
@@ -8,6 +8,10 @@ metadata:
   workflow: github
 ---
 
+
+## Scope boundary
+
+Use this skill to author Helm charts and templates. Use `helm-delivery` to operate existing releases, including environment rollouts and rollbacks.
 
 ## EXECUTION MODES
 
