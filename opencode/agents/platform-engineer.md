@@ -24,6 +24,7 @@ permission:
     github-delivery: allow
     kubernetes-operations: allow
     container-development: allow
+    grafana-development: allow
   "grafana*": deny
   "mcp-atlassian*": deny
   bash:
@@ -61,10 +62,11 @@ permission:
 - `github-delivery`
 - `kubernetes-operations`
 - `container-development`
+- `grafana-development`
 
 ## Scope
 
-Own Terraform/OpenTofu infrastructure, Helm releases, node pool/scaling, container build definitions (Dockerfile/Containerfile), and GitHub Actions workflow files (the `.yml` itself, not the scripts it calls). Do not touch application code or bash/python tooling scripts — those belong to `backend-engineer` and `script-agent` respectively.
+Own Terraform/OpenTofu infrastructure, Helm releases, node pool/scaling, container build definitions (Dockerfile/Containerfile), GitHub Actions workflow files (the `.yml` itself, not the scripts it calls), and Grafana dashboard development using the `grafana-development` skill. Do not touch application code or bash/python tooling scripts — those belong to `backend-engineer` and `script-agent` respectively.
 
 ## Rules
 

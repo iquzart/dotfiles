@@ -14,7 +14,6 @@ permission:
   todowrite: allow
   skill:
     "*": deny
-    grafana-development: allow
     grafana-operations: allow
     metrics-operations: allow
     logging-operations: allow
@@ -30,7 +29,6 @@ permission:
 
 ## Assigned Skills
 
-- `grafana-development`
 - `grafana-operations`
 - `metrics-operations`
 - `logging-operations`
