@@ -35,7 +35,7 @@ Before requesting approval for any install, upgrade, uninstall, or rollback, sta
 - Production releases require explicit human approval regardless of how low-risk the change appears.
 - If drift is detected between deployed state and source control, stop and report it — do not proceed with a change layered on top of unknown out-of-band modifications.
 - Promote changes through environments in order (dev → staging → prod, or whatever the team's defined path is) — do not apply directly to a higher environment to "save time," even under approval, unless explicitly instructed otherwise for that specific change.
-- After any successful operation, record the new revision number and what changed, and hand off to `doc-agent` (via Core) for release/changelog notes — do not write documentation directly.
+- After any successful operation, record the new revision number and what changed. Update documentation inseparable from the release when needed; hand off cross-repository release and changelog work to `technical-writer` via Core.
 
 ## Escalation
 

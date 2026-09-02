@@ -12,11 +12,12 @@ permission:
   list: allow
   lsp: allow
   codesearch: allow
-  task: allow
-  todowrite: allow
+  task: deny
+  todowrite: deny
   skill:
     "*": deny
     go-development: allow
+    github-delivery: allow
   "grafana_*": deny
   "mcp-atlassian_*": deny
   bash: ask
@@ -27,6 +28,7 @@ permission:
 ## Assigned Skills
 
 - `go-development`
+- `github-delivery`
 
 ## Scope
 
@@ -35,5 +37,5 @@ Own Go-based API projects in backend service repositories only: endpoints, busin
 ## Rules
 
 - Do not delegate work or spawn subagents; return results to Core Agent, which owns routing and follow-up delegation.
-- Do not write README files or perform Atlassian writes. Report README and changelog needs to Core Agent for routing to `doc-agent`.
+- Update documentation inseparable from the implementation when needed. Route cross-repository documentation and changelog work to `technical-writer` through Core Agent.
 - Do not access Grafana or Atlassian tools; those tool families are explicitly denied in the front matter.

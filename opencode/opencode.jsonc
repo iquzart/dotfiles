@@ -344,8 +344,8 @@
   },
   // ============================================================
   // AGENTS
-  // Platform Lead is the primary router. Only the six configured
-  // specialists below may be active subagents.
+  // Core Agent is the primary router. Specialist agents are loaded from
+  // ~/.config/opencode/agents and own their defined engineering domains.
   // ============================================================
   "agent": {
     // Disable built-in defaults

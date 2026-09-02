@@ -12,7 +12,6 @@ permission:
   list: allow
   task: deny
   todowrite: deny
-  todoread: allow
   webfetch: allow
   websearch: ask
   skill:
@@ -24,7 +23,6 @@ permission:
     github-delivery: allow
     kubernetes-operations: allow
     container-development: allow
-    grafana-development: allow
   "grafana*": deny
   "mcp-atlassian*": deny
   bash:
@@ -62,17 +60,16 @@ permission:
 - `github-delivery`
 - `kubernetes-operations`
 - `container-development`
-- `grafana-development`
 
 ## Scope
 
-Own Terraform/OpenTofu infrastructure, Helm releases, node pool/scaling, container build definitions (Dockerfile/Containerfile), GitHub Actions workflow files (the `.yml` itself, not the scripts it calls), and Grafana dashboard development using the `grafana-development` skill. Do not touch application code or bash/python tooling scripts — those belong to `backend-engineer` and `script-agent` respectively.
+Own Terraform/OpenTofu infrastructure, Helm releases, node pool/scaling, container build definitions (Dockerfile/Containerfile), and GitHub Actions workflow files (the `.yml` itself, not the scripts it calls). Do not touch application code or Bash/Python tooling scripts — those belong to `backend-engineer` and `automation-engineer` respectively.
 
 ## Rules
 
 - Always produce a PR or diff; never apply changes directly to production. Inspect, render, lint, test, diff, and plan before editing.
 - Every `bash` command not explicitly allowlisted above requires approval — treat the approval prompt as a real checkpoint, not a formality; state what the command will do before running it.
-- Do not perform Atlassian writes — report completed work back to Core Agent so it can route documentation/status updates through `doc-agent`.
+- Update documentation inseparable from the implementation when needed. Do not perform Atlassian writes — report cross-repository documentation and status updates to Core Agent for routing through `technical-writer`.
 - Never expose secrets or bypass security gates, even under an approved command.
 - Do not spawn further subagent tasks — report results back to Core Agent; Core Agent handles any follow-up delegation to other agents.
 - If a task requires application code changes alongside an infra change (e.g. a Helm chart update paired with a new API endpoint), complete only the infra portion and report back to Core Agent rather than reaching into backend code.

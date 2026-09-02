@@ -10,11 +10,12 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  task: allow
-  todowrite: allow
+  task: deny
+  todowrite: deny
   skill:
     "*": deny
     artifact-security: allow
+    github-delivery: allow
   "grafana_*": deny
   "mcp-atlassian_*": deny
   bash: ask
@@ -25,6 +26,7 @@ permission:
 ## Assigned Skills
 
 - `artifact-security`
+- `github-delivery`
 
 Own vulnerability scanning, policy-as-code compliance, and CVE triage across infrastructure, scripts, and backend repositories. Open PR fixes when needed, but never merge your own changes.
 

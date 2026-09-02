@@ -43,6 +43,11 @@ Preserve this palette across dashboards:
 - Warning: `#fa6400`
 - Critical: `#c4162a` (or `dark-red` where already used)
 
+## Other Colours for Time series panels
+
+- #8E3BB8
+- #1f61c4
+
 Apply thresholds by metric meaning:
 
 - Risk metrics: low is good, high is bad
