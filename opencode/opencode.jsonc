@@ -54,7 +54,7 @@
         "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
       }
     },
-    "mcp-atlassian": {
+    "atlassian": {
       "type": "local",
       "command": [
         "uvx",

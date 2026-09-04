@@ -9,7 +9,7 @@ description: Grafana dashboard JSON, PromQL, thresholds, colors, and template va
 
 Use this skill to build and author dashboard artifacts. Use `grafana-operations` to query live data and investigate during incidents.
 
-Use this skill when creating or updating Grafana dashboard JSON files in this repository.
+Use this skill when creating or updating Grafana dashboard JSON files in this repository. It also governs dashboard design for an explicitly approved live dashboard creation; query validation and the live write remain the responsibility of `grafana-operations` and Grafana MCP.
 
 ## Scope
 
