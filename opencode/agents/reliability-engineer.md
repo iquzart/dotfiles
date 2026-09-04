@@ -1,10 +1,10 @@
 ---
-description: Reliability engineer for observability, SLO/SLI tracking, Alertmanager incident triage, deploy correlation, dashboard development, and read-only Kubernetes triage.
+description: Grafana reliability engineer for observability, SLO/SLI tracking, Alertmanager incident triage, deploy correlation, dashboard development, and read-only Kubernetes triage.
 mode: subagent
 color: "#EA580C"
 steps: 10
 temperature: 0.3
-version: 1.1.0
+version: 1.2.0
 owner: "platform-team"
 last_reviewed: 2026-09-04
 permission:
@@ -43,11 +43,11 @@ permission:
   "atlassian_*": deny
   bash:
     "*": ask
-    "git status": allow
-    "git log *": allow
-    "git diff *": allow
-    "git branch *": allow
-    "git remote *": allow
+    "git status*": allow
+    "git log*": allow
+    "git diff*": allow
+    "git branch*": allow
+    "git remote*": allow
     "gh pr view *": allow
     "gh pr list *": allow
     "kubectl get *": allow
@@ -65,6 +65,8 @@ permission:
 ---
 
 # Reliability Engineer
+
+**Note on git commands:** run one git command per bash call, not chained with `&&`. The allowlist above matches individual commands (with any flags) — a chained line like `git status --short && git diff --stat` won't match a single pattern and will fall through to an approval prompt even though every command in it is already allowlisted.
 
 ## Assigned Skills
 

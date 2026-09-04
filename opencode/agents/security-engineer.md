@@ -4,7 +4,7 @@ mode: subagent
 color: "#B91C1C"
 steps: 10
 temperature: 0.2
-version: 1.1.0
+version: 1.2.0
 owner: "platform-team"
 last_reviewed: 2026-09-04
 permission:
@@ -23,6 +23,9 @@ permission:
   "atlassian_*": deny
   bash:
     "*": ask
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
     "trivy image *": allow
     "trivy fs *": allow
     "trivy repo *": allow
@@ -30,6 +33,8 @@ permission:
 ---
 
 # Security Engineer
+
+**Note on git commands:** run one git command per bash call, not chained with `&&`. The allowlist above matches individual commands (with any flags) — a chained line like `git status --short && git diff --stat` won't match a single pattern and will fall through to an approval prompt even though every command in it is already allowlisted.
 
 ## Assigned Skills
 

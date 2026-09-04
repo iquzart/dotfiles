@@ -4,7 +4,7 @@ mode: subagent
 color: "#0F766E"
 steps: 8
 temperature: 0.4
-version: 1.1.0
+version: 1.2.0
 owner: "platform-team"
 last_reviewed: 2026-09-04
 permission:
@@ -22,10 +22,16 @@ permission:
     github-delivery: allow
   "grafana_*": deny
   "atlassian_*": ask
-  bash: ask
+  bash:
+    "*": ask
+    "git status*": allow
+    "git diff*": allow
+    "git log*": allow
 ---
 
 # Technical Writer
+
+**Note on git commands:** run one git command per bash call, not chained with `&&`. The allowlist above matches individual commands (with any flags) — a chained line like `git status --short && git diff --stat` won't match a single pattern and will fall through to an approval prompt even though every command in it is already allowlisted.
 
 ## Assigned Skills
 
