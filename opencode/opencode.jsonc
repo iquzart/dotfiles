@@ -15,11 +15,12 @@
   "snapshot": true,
   // ============================================================
   // DEFAULT AGENT & MODELS
-  // Platform Lead is the entry point and delegates only when needed.
+  // OpenAI is the active provider. Ollama is retained below but disabled.
   // ============================================================
   "default_agent": "core-agent",
-  "model": "qwen3:balanced",
-  "small_model": "ollama/gemma4:e2b",
+  "model": "openai/gpt-5.6-terra",
+  // Use Terra until a lower-latency OpenAI model is configured.
+  "small_model": "openai/gpt-5.6-terra",
   // ============================================================
   // Plugins
   // ============================================================
@@ -72,8 +73,11 @@
   // PROVIDERS
   // ============================================================
   "provider": {
+    /*
     // ----------------------------------------------------------
-    // LOCAL: Ollama
+    // PARKED: Ollama
+    // To reactivate, remove this block comment and set model and
+    // small_model above to fully-qualified ollama/<model> values.
     // Start: ollama serve
     // Pull:  ollama pull gemma4:e4b && ollama pull qwen3:balanced
     // ----------------------------------------------------------
@@ -122,6 +126,7 @@
         }
       }
     },
+    */
     // ----------------------------------------------------------
     // FREE PUBLIC: OpenRouter
     // Get free key: https://openrouter.ai
@@ -153,7 +158,7 @@
       }
     },
     // ----------------------------------------------------------
-    // PAID: OpenAI — escalation only, uncomment when needed
+    // ACTIVE: OpenAI
     // Export: export OPENAI_API_KEY=sk-...
     // ----------------------------------------------------------
     "openai": {
@@ -166,14 +171,14 @@
       "models": {
         // Best cost/quality — complex code, hard reviews
         "gpt-5.6-terra": {
-          "name": "GTP 5.6 Terra",
+          "name": "GPT 5.6 Terra",
           "tools": true,
           "reasoning": true,
           "vision": true
         },
         // Deep reasoning — architecture decisions
         "gpt-5.6-luna": {
-          "name": "GTP 5.6 Luna",
+          "name": "GPT 5.6 Luna",
           "tools": true,
           "reasoning": true,
           "vision": false
