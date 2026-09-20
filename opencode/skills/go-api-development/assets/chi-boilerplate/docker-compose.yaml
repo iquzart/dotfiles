@@ -1,0 +1,12 @@
+services:
+  {{SERVICE_NAME}}:
+    build:
+      context: .
+      dockerfile: Containerfile
+    environment:
+      PORT: {{SERVICE_PORT}}
+      SERVICE_NAME: {{SERVICE_NAME}}
+      LOG_LEVEL: info
+      TRACING_ENABLED: "false"
+    ports:
+      - "{{SERVICE_PORT}}:{{SERVICE_PORT}}"

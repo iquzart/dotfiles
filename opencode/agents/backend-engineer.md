@@ -20,6 +20,7 @@ permission:
   skill:
     "*": deny
     go-development: allow
+    go-api-development: allow
     github-delivery: allow
   "grafana_*": deny
   "atlassian_*": deny
@@ -41,6 +42,7 @@ permission:
 ## Assigned Skills
 
 - `go-development`
+- `go-api-development`
 - `github-delivery`
 
 ## Scope
