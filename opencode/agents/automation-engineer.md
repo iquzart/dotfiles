@@ -28,11 +28,40 @@ permission:
     "python -m pytest *": allow
     "ruff check *": allow
     "shellcheck *": allow
-    "git status*": allow
-    "git log*": allow
-    "git diff*": allow
-    "git branch*": allow
-    "git add *": allow
+    # Allow all git commands...
+    "git *": allow
+
+    # ...then override the ones that delete/remove/destroy (must come AFTER "git *")
+    "git rm*": deny
+    "git clean*": deny
+    "git branch -d*": deny
+    "git branch -D*": deny
+    "git branch --delete*": deny
+    "git tag -d*": deny
+    "git tag --delete*": deny
+    "git push * --delete*": deny
+    "git push * -d *": deny
+    "git push * :*": deny
+    "git push *--force*": deny
+    "git push * -f*": deny
+    "git reset --hard*": deny
+    "git checkout -- *": deny
+    "git restore *": deny
+    "git stash drop*": deny
+    "git stash clear*": deny
+    "git worktree remove*": deny
+    "git worktree prune*": deny
+    "git remote remove*": deny
+    "git remote rm*": deny
+    "git submodule deinit*": deny
+    "git reflog expire*": deny
+    "git reflog delete*": deny
+    "git gc*": deny
+    "git prune*": deny
+    "git filter-branch*": deny
+    "git update-ref -d*": deny
+
+    # Keep your approval gates for publishing actions (also AFTER "git *")
     "git commit *": ask
     "git push *": ask
     "gh pr create *": ask

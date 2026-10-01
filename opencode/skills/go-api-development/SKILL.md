@@ -1,140 +1,389 @@
 ---
+
 name: go-api-development
-description: Build, test, review, and scaffold Go Chi REST APIs with bootstrap lifecycle management, DTOs, system health endpoints, Prometheus metrics, and optional OpenTelemetry tracing. Use for new Go HTTP services, API routes, handlers, request/response DTOs, or API observability; use golang-pro for concurrency, gRPC, profiling, generics, or advanced Go design.
----
+description: Build, test, review, and scaffold Go Chi REST APIs with bootstrap lifecycle management, DTOs, system health endpoints, Prometheus metrics, Swagger/OpenAPI, and optional OpenTelemetry tracing. Every new Go API service must be generated from the included scaffold, even when the request does not mention Chi or scaffolding. Use for new Go HTTP services, API routes, handlers, request/response DTOs, or API observability; use golang-pro for concurrency, gRPC, profiling, generics, or advanced Go design
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Go API Development
 
-## Project Intake (new project/service only)
+Build Go HTTP APIs using the repository's required Chi scaffold and hexagonal architecture.
 
-Before scaffolding a new Go service, ask the user:
+## Project Intake
 
-1. **Tracing** — Enable OpenTelemetry tracing? (yes/no, default no)
-2. **Metrics** — Enable Prometheus metrics? (yes/no, default yes)
-3. **Persistence** — Does this service need a database? If yes, which (PostgreSQL, etc.) and does it need migrations?
-4. **Cache** — Does this service need a cache layer (Redis, etc.)?
+For a new service, determine:
+
+1. **Tracing** — Enable OpenTelemetry tracing? Default: no.
+2. **Metrics** — Enable Prometheus metrics? Default: yes.
+3. **Persistence** — Does the service need a database? If yes, which database and does it need migrations?
+4. **Cache** — Does the service need a cache layer such as Redis?
 5. **API style** — REST only, or REST + gRPC?
-6. **Auth** — Does this service need JWT/session auth, or is it internal/unauthenticated?
-7. **Deployment target** — Container only, or also needs Helm chart / Kubernetes manifests? (route to platform-engineer if the latter)
+6. **Auth** — JWT/session auth, or internal/unauthenticated?
+7. **Deployment target** — Container only, or also Helm/Kubernetes manifests? Route deployment-specific work to `platform-engineer`.
 
-Use the answers to decide which `internal/adapters/*` packages to scaffold — don't generate cache, database, or auth code the service doesn't need.
+Ask only questions that cannot be determined from the request or repository.
 
-## Standard Structure (hexagonal)
+Use the answers to decide which `internal/adapters/*` packages are required. Do not generate unused database, cache, or auth code.
 
-Use this layout for every new service unless the user specifies otherwise. The generic Chi template includes HTTP, configuration, bootstrap, logging, metrics, tracing, and ping packages; add domain packages only when the service needs them:
+Swagger/OpenAPI is mandatory for every API and is not an intake option.
 
+## New Services
+
+Every new Go API must be generated from the included Chi scaffold:
+
+```bash
+scripts/new-chi-service.sh \
+  --module <module-path> \
+  --name <service-name> \
+  --destination <path> \
+  --port 8080
 ```
-cmd/api/main.go              # entrypoint: wiring, graceful shutdown
+
+Port `8080` is mandatory.
+
+The destination must be absent. The script validates the module, service name, and port, copies the template, replaces:
+
+```text
+{{MODULE_PATH}}
+{{SERVICE_NAME}}
+{{SERVICE_PORT}}
+```
+
+then runs `gofmt` and `go mod tidy`.
+
+Do not hand-build a new API or replace the scaffold's `main.go` lifecycle.
+
+## Standard Structure
+
+Use this hexagonal structure:
+
+```text
+cmd/api/main.go
 internal/
   core/
-    entities/                # domain types
-    repositories/            # interfaces (ports) the domain depends on
-    services/                # domain services (e.g. jwt_service.go)
-  app/usecases/               # application logic, orchestrates core + ports
+    entities/
+    repositories/
+    services/
+  app/usecases/
   adapters/
     http/
-      handlers/               # one file per resource + health/version/metrics
-      middleware/              # logging, metrics, (tracing if enabled)
-      router/                  # route composition
-      routes/                  # api_routes.go, system_routes.go
-      dto/                     # request/response shapes
-      server/                  # http.Server setup, graceful shutdown
-    database/<engine>/         # connection, migration, repository impls
-    cache/<engine>/            # connection, repository impls
+      handlers/
+      middleware/
+      router/
+      routes/
+      dto/
+      server/
+    database/<engine>/
+    cache/<engine>/
   meta/
-    logger.go                  # slog setup
-    metrics.go                  # Prometheus registry/handlers
-    tracing.go                  # OTel setup (present but no-op if disabled)
+    logger.go
+    metrics.go
+    tracing.go
   config/config.go
 migrations/
-infra/                          # grafana-datasources.yaml, otel-collector.yaml, prometheus.yaml, tempo.yaml
-docs/                           # swagger/OpenAPI
+infra/
+docs/                         # Swagger/OpenAPI
 Containerfile
 docker-compose.yaml
 Makefile
 ```
 
-Keep `core` free of framework/adapter imports — it must not know about HTTP, Postgres, or Redis directly, only through `repositories` interfaces.
+The generic scaffold provides the HTTP, configuration, bootstrap, logging, metrics, tracing, Swagger/OpenAPI, and ping baseline. Add domain, database, cache, or auth packages only when required.
 
-## Observability Requirements
+Keep `internal/core` free of framework and adapter imports. It must not know about HTTP, PostgreSQL, Redis, or other infrastructure directly. Use repository interfaces for domain dependencies.
 
-**Endpoints** — group under a single `/system` route prefix, separate from `/api`:
+## Required API Endpoints
 
-- `GET /system/version`
-- `GET /system/health/ready`
-- `GET /system/health/live`
-- `GET /system/metrics`
+Every new service retains:
 
-Register all four from one `system_routes.go`, mounted once in `router.go` — don't scatter them across handler files.
+```text
+GET /api/v1/ping
 
-**Logging** — `slog` with JSON handler by default.
-
-- If tracing is enabled for the service, inject `trace_id` into every log record via a `slog.Handler` wrapper that reads the trace ID from context — not by manually adding it at each call site.
-- If tracing is disabled, logs must not reference or fail on a missing trace context.
-
-**Metrics** — expose via `/system/metrics` in Prometheus format. Wire request-duration/count middleware at the router level (`middleware/metrics.go`), not per-handler.
-
-**Tracing** — OTel, toggled by config (`config.TracingEnabled` or equivalent). When disabled, `meta/tracing.go` should provide a no-op tracer so the rest of the codebase never needs `if tracingEnabled` checks scattered around — one place decides, everywhere else just calls the tracer.
-
-**Graceful shutdown** — `cmd/api/main.go` must:
-
-- Listen for `SIGINT`/`SIGTERM`
-- Stop accepting new requests, drain in-flight ones with a bounded timeout (`http.Server.Shutdown(ctx)`)
-- Defer `bootstrap.Dependencies.Close()` so the OTel exporter is flushed before exiting
-
-## Chi Boilerplate Template
-
-Use `assets/chi-boilerplate/` only for a new REST service built with Chi. It is a generic baseline, not an auth server.
-
-**Included**:
-
-- `cmd/api/main.go` using the load-config, bootstrap-initialize, defer-close, and `server.New(...).Run()` lifecycle
-- `internal/bootstrap` for logger and optional tracing lifecycle management
-- `GET /api/v1/ping` as a complete handler, DTO, route, and use-case example
-- JSON `slog` request logging, Prometheus request metrics, optional OpenTelemetry HTTP tracing, and graceful HTTP shutdown
-- `GET /system/version`, `GET /system/health/live`, `GET /system/health/ready`, and `GET /system/metrics`
-- `Containerfile`, `docker-compose.yaml`, `Makefile`, `.env.example`, and a router endpoint test
-
-**Excluded**:
-
-- Authentication, JWTs, users, roles, sessions, and identity-provider configuration
-- Databases, Redis, migrations, cache adapters, and persistence dependencies
-- Swagger/OpenAPI generation and application-specific domain models
-
-Do not replace the template's `main.go` lifecycle for a new service. Keep bootstrap as the composition and cleanup boundary; add optional infrastructure there only when the intake confirms it is required.
-
-Scaffold with:
-
-```bash
-scripts/new-chi-service.sh \
-  --module github.com/acme/orders \
-  --name orders \
-  --destination ../orders \
-  --port 8080
+GET /system/version
+GET /system/health/ready
+GET /system/health/live
+GET /system/metrics
 ```
 
-The command requires an absent destination and validates the module, service name, and port. It copies the template, replaces `{{MODULE_PATH}}`, `{{SERVICE_NAME}}`, and `{{SERVICE_PORT}}`, runs `gofmt`, and runs `go mod tidy`. Follow it with `go test ./...` and `go vet ./...`.
+Register all `/system` endpoints from one `system_routes.go` and mount them once through `router.go`.
+
+Do not scatter system route registration across handlers or `main.go`.
+
+## HTTP Design
+
+Keep HTTP concerns under:
+
+```text
+internal/adapters/http/
+```
+
+### Handlers
+
+Handlers should:
+
+1. Parse and validate HTTP input.
+2. Convert DTOs to application input.
+3. Call the use case.
+4. Convert results to response DTOs.
+5. Return the HTTP response.
+
+Handlers must not contain business logic.
+
+### DTOs
+
+Keep request/response DTOs under:
+
+```text
+internal/adapters/http/dto/
+```
+
+Do not expose domain entities directly as API contracts unless intentionally required.
+
+### Routes
+
+Keep route composition separate from handlers.
+
+Do not register `/api` or `/system` routes directly in `main.go`.
+
+## Swagger/OpenAPI
+
+Every API must include an OpenAPI specification and Swagger UI.
+
+Document:
+
+* API endpoints
+* request DTOs
+* response DTOs
+* path parameters
+* query parameters
+* authentication requirements when applicable
+* HTTP status codes
+* error responses
+
+Keep the OpenAPI specification synchronized with the implemented API.
+
+Swagger/OpenAPI belongs under:
+
+```text
+docs/
+```
+
+Do not omit or remove API documentation for a new service.
+
+## Observability
+
+### Logging
+
+Use JSON `slog`.
+
+When tracing is enabled, inject `trace_id` into log records through a `slog.Handler` wrapper that reads the trace ID from context.
+
+Do not manually add trace IDs at individual call sites.
+
+When tracing is disabled, logging must work without trace context.
+
+### Metrics
+
+Expose Prometheus metrics through:
+
+```text
+GET /system/metrics
+```
+
+Register request count and duration middleware at the router level in:
+
+```text
+internal/adapters/http/middleware/metrics.go
+```
+
+Do not instrument every handler individually.
+
+### Tracing
+
+Tracing is optional and controlled by configuration such as `config.TracingEnabled`.
+
+When disabled, `meta/tracing.go` provides a no-op tracer so application code does not need scattered tracing checks.
+
+## Bootstrap and Shutdown
+
+Keep bootstrap as the composition and cleanup boundary.
+
+`cmd/api/main.go` must:
+
+* load configuration
+* initialize bootstrap dependencies
+* create the server
+* listen for `SIGINT`/`SIGTERM`
+* stop accepting new requests
+* drain in-flight requests using bounded `http.Server.Shutdown(ctx)`
+* defer `bootstrap.Dependencies.Close()`
+
+Dependency cleanup must allow resources such as the OTel exporter to flush before exit.
+
+## Database
+
+Add database infrastructure only when required:
+
+```text
+internal/adapters/database/<engine>/
+```
+
+Database-specific types and implementations remain inside the adapter.
+
+If migrations are required:
+
+```text
+migrations/
+```
+
+Do not introduce an ORM or migration framework without a concrete requirement or existing project convention.
+
+## Cache
+
+Add cache infrastructure only when required:
+
+```text
+internal/adapters/cache/<engine>/
+```
+
+Cache-specific types remain inside the adapter.
+
+Do not add Redis or another cache dependency unless the service requires it.
+
+## Authentication
+
+Authentication is not part of the generic scaffold.
+
+Add JWT/session/authentication infrastructure only when required.
+
+Do not add users, roles, sessions, or identity-provider configuration to services that do not need them.
+
+## Chi Boilerplate
+
+Use:
+
+```text
+assets/chi-boilerplate/
+```
+
+for every new API service.
+
+It includes:
+
+* `cmd/api/main.go`
+* `internal/bootstrap`
+* configuration
+* logging
+* metrics
+* optional tracing
+* graceful shutdown
+* `GET /api/v1/ping`
+* system endpoints
+* Swagger/OpenAPI
+* `Containerfile`
+* `docker-compose.yaml`
+* `Makefile`
+* `.env.example`
+* router endpoint test
+
+It excludes:
+
+* authentication
+* JWTs
+* users
+* roles
+* sessions
+* databases
+* Redis
+* migrations
+* application-specific domain models
+
+Add excluded components only when required by the service.
+
+## Existing Services
+
+Before modifying an existing service:
+
+1. Inspect `go.mod`.
+2. Inspect the package layout.
+3. Inspect router, bootstrap, configuration, and test conventions.
+4. Follow existing project patterns.
+5. Make the smallest idiomatic change.
+
+Do not restructure an existing service to match the scaffold unless explicitly requested.
 
 ## Workflow
 
-1. On a new Chi REST service: run Project Intake questions above, then scaffold with `scripts/new-chi-service.sh --module <module-path> --name <service-name> --destination <path>`.
-2. Keep the template's bootstrap-based startup lifecycle. Add an adapter only when the intake answers require it.
-3. Start the first API vertical slice from `GET /api/v1/ping`; retain the `/system/version`, `/system/health/live`, `/system/health/ready`, and `/system/metrics` endpoints.
-4. On an existing project: inspect `go.mod`, package layout, and established test conventions before editing.
-5. Make the smallest idiomatic change and run `gofmt` on modified Go files.
-6. Run focused `go test` commands and `go vet` when practical.
+### New Service
+
+1. Determine requirements from the request and repository.
+2. Ask only unresolved intake questions.
+3. Run `scripts/new-chi-service.sh`.
+4. Preserve the bootstrap lifecycle.
+5. Retain `/api/v1/ping` and all `/system` endpoints.
+6. Implement the required vertical slice.
+7. Add only required adapters.
+8. Add/update Swagger/OpenAPI documentation.
+9. Add/update tests.
+10. Run `gofmt`.
+11. Run focused tests.
+12. Run `go test ./...`.
+13. Run `go vet ./...`.
+
+### Existing Service
+
+1. Inspect the existing project structure and conventions.
+2. Make the smallest required change.
+3. Update Swagger/OpenAPI when the API contract changes.
+4. Add/update tests.
+5. Run `gofmt`.
+6. Run focused tests.
+7. Run `go vet ./...` when practical.
 
 ## Rules
 
-- Handle errors explicitly and add context with `%w` when returning them.
-- Accept `context.Context` as the first argument for request-scoped or blocking operations.
-- Keep exported APIs small and document exported identifiers when project conventions require it.
-- Avoid new interfaces until there is a consumer boundary that needs one.
-- Do not introduce goroutines without a defined lifecycle, cancellation behavior, and error path.
-- Do not change module dependencies without a concrete requirement.
-- Do not put HTTP, database, or cache types in `internal/core` — only in `internal/adapters`.
-- Do not hardcode `/system` or `/api` route registration inline in `main.go` — always compose via `router.go`.
+* Handle errors explicitly.
+* Add error context with `%w` when returning errors.
+* Accept `context.Context` as the first argument for request-scoped or blocking operations.
+* Keep exported APIs small and document exported identifiers when project conventions require it.
+* Avoid new interfaces until there is a consumer boundary that needs one.
+* Do not introduce goroutines without a defined lifecycle, cancellation behavior, and error path.
+* Do not change module dependencies without a concrete requirement.
+* Do not put HTTP, database, or cache types in `internal/core`.
+* Do not hardcode `/system` or `/api` route registration in `main.go`.
+* Do not remove Swagger/OpenAPI from an API service.
+* Keep Swagger/OpenAPI synchronized with the implemented API.
+
+## Validation
+
+After scaffolding:
+
+```bash
+go test ./...
+go vet ./...
+```
+
+Run focused tests first when appropriate.
+
+Run:
+
+```bash
+go test -race ./...
+```
+
+when the change involves concurrency or race-sensitive code.
 
 ## Escalation
 
-Load `golang-pro` for goroutines, channels, gRPC, generics, benchmarks, pprof, race conditions, or performance-sensitive design.
+Load `golang-pro` for:
+
+* goroutines
+* channels
+* gRPC
+* generics
+* benchmarks
+* profiling
+* pprof
+* race conditions
+* performance-sensitive design
+
+Route Kubernetes/Helm/deployment-specific work to `platform-engineer`.
