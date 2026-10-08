@@ -9,6 +9,7 @@ Usage:
   scaffold.py --lang go --name svc --port 8080 --org acme --repo svc \
       [--description "..."] [--compose] [--with-db] [--dest .]
 """
+
 import argparse
 import re
 import sys
@@ -44,15 +45,27 @@ def render(text: str, ctx: dict) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--lang", choices=["go", "node", "generic"], default="generic")
-    ap.add_argument("--name", required=True, help="service name (matches repo/component)")
+    ap.add_argument(
+        "--name", required=True, help="service name (matches repo/component)"
+    )
     ap.add_argument("--port", default="8080")
     ap.add_argument("--org", default="<org>")
     ap.add_argument("--repo", help="repository name (default: --name)")
     ap.add_argument("--description", default="<short description>")
-    ap.add_argument("--compose", action="store_true", help="also write compose.yaml and .env.example")
-    ap.add_argument("--with-db", action="store_true", help="include a Postgres service (needs --compose)")
+    ap.add_argument(
+        "--compose",
+        action="store_true",
+        help="also write compose.yaml and .env.example",
+    )
+    ap.add_argument(
+        "--with-db",
+        action="store_true",
+        help="include a Postgres service (needs --compose)",
+    )
     ap.add_argument("--dest", default=".")
     args = ap.parse_args()
 
@@ -86,18 +99,20 @@ def main() -> int:
         makefile = keep_blocks(makefile, "compose")
     else:
         makefile = strip_blocks(makefile, "compose")
-        makefile = "\n".join(l for l in makefile.split("\n") if "# compose-only" not in l)
+        makefile = "\n".join(
+            l for l in makefile.split("\n") if "# compose-only" not in l
+        )
     makefile = makefile.replace(" # compose-only", "")
-    if not args.compose:
-        makefile = makefile.replace(" (and compose file if present)", "")
-        makefile = makefile.replace("up down logs ps config", "").replace(".PHONY: help build run lint size clean ", ".PHONY: help build run lint size clean")
-        makefile = "\n".join(l for l in makefile.split("\n") if not l.startswith("COMPOSE "))
     outputs["Makefile"] = render(makefile, ctx)
 
     if args.compose:
         db_on, db_off = (("db",), ()) if args.with_db else ((), ("db",))
-        outputs["compose.yaml"] = prep((ASSETS / "compose.yaml").read_text(), db_off, db_on)
-        outputs[".env.example"] = prep((ASSETS / "env.example").read_text(), db_off, db_on)
+        outputs["compose.yaml"] = prep(
+            (ASSETS / "compose.yaml").read_text(), db_off, db_on
+        )
+        outputs[".env.example"] = prep(
+            (ASSETS / "env.example").read_text(), db_off, db_on
+        )
 
     written, skipped = [], []
     for fname, content in outputs.items():
@@ -111,11 +126,21 @@ def main() -> int:
     for f in written:
         print(f"created  {dest / f}")
     for f in skipped:
-        print(f"skipped  {dest / f} (exists; merge by hand, see assets/ and references/)")
+        print(
+            f"skipped  {dest / f} (exists; merge by hand, see assets/ and references/)"
+        )
 
-    left = sorted({m for f in written for m in re.findall(r"<[a-zA-Z][^>\n]*>", (dest / f).read_text())})
+    left = sorted(
+        {
+            m
+            for f in written
+            for m in re.findall(r"<[a-zA-Z][^>\n]*>", (dest / f).read_text())
+        }
+    )
     if left:
-        print("\nResolve these placeholders before use (check.py flags them as Blockers):")
+        print(
+            "\nResolve these placeholders before use (check.py flags them as Blockers):"
+        )
         for m in left:
             print(f"  {m}")
     print("\nNext: python scripts/check.py", dest)

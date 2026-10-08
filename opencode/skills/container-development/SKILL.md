@@ -5,6 +5,8 @@ description: Create new or optimize existing Containerfiles/Dockerfiles, compose
 
 # Container Development
 
+`SKILL_DIR` = `~/.config/opencode/skills/container-development`. Script paths below are relative to it; always call them with the full path (for example `python ~/.config/opencode/skills/container-development/scripts/check.py .`) because the working directory is the user's project. Python 3 is required; PyYAML is optional (compose checks).
+
 Two workflows. Pick one first, then read only the references it points to.
 
 | User intent | Workflow |
@@ -15,14 +17,16 @@ Two workflows. Pick one first, then read only the references it points to.
 ## Create (new project)
 
 1. Detect the stack (Go, Node, other) and the service name, port, and repo from the project.
-2. Scaffold the deliverables with the script (never overwrites existing files):
-   ```bash
-   python scripts/scaffold.py --lang <go|node|generic> --name <service> --port <port> \
-     --org <github-org> --repo <repo> [--compose] [--with-db] [--dest .]
-   ```
-   Or copy from `assets/` by hand if the script can't run.
+2. Scaffold the deliverables with the script (never overwrites existing files). With no flags it auto-detects language (`go.mod`, `package.json`), service name, and org/repo (git remote):
+
+```bash
+   python $SKILL_DIR/scripts/scaffold.py [--compose] [--with-db] [--dest .]
+   # or override anything: --lang go|node|generic --name <svc> --port <port> --org <org> --repo <repo>
+```
+
+   Or copy from `assets/` by hand if the script can't run. The user can also trigger this with the `/generate-containerfile` command (below).
 3. Replace every remaining `<version>` / `<digest>` placeholder with a real pinned tag and digest (look them up; never invent digests) and adapt build commands to the project.
-4. Verify: `python scripts/check.py .` (must report no Blockers or Majors), plus `hadolint Containerfile` if installed.
+4. Verify: `python $SKILL_DIR/scripts/check.py .` (must report no Blockers or Majors), plus `hadolint Containerfile` if installed.
 5. Tell the user what was created and which values they must confirm.
 
 Deliverables are never just one file:
@@ -40,7 +44,7 @@ If any already exists, extend it. Never overwrite or rename without asking. For 
 
 ## Optimize (existing files)
 
-1. Run `python scripts/check.py <path>` to get findings, and `hadolint <file>` if available.
+1. Run `python $SKILL_DIR/scripts/check.py <path>` to get findings, and `hadolint <file>` if available.
 2. Read `references/review.md` for the report format and the optimization checklist (size, cache, build speed), then the topic reference for each finding.
 3. **Report first, don't silently fix.** List findings as `[Severity] file:line - issue - fix`, ordered by severity. Apply changes only after the user agrees.
 4. After approved changes, re-run `check.py` and `make size` and report before/after.
@@ -89,8 +93,16 @@ Placeholders in assets use `{{NAME}}`, `{{PORT}}`, `{{ORG}}`, `{{REPO}}`, `{{DES
 
 | Script | Use |
 |---|---|
-| `scripts/scaffold.py` | Create workflow: writes deliverables from assets without overwriting |
-| `scripts/check.py` | Both workflows: static rule checker for Containerfiles and compose files; exit code 1 if any Blocker. Containerfile checks use only the standard library; compose checks need PyYAML and are skipped with a note if it is missing |
+| `$SKILL_DIR/scripts/scaffold.py` | Create workflow: writes deliverables from assets without overwriting |
+| `$SKILL_DIR/scripts/check.py` | Both workflows: static rule checker for Containerfiles and compose files; exit code 1 if any Blocker. Containerfile checks use only the standard library; compose checks need PyYAML and are skipped with a note if it is missing |
+
+## Command
+
+OpenCode loads commands from its own `commands/` directory, not from inside a skill folder, so the command ships separately:
+
+| File | Use |
+|---|---|
+| `~/.config/opencode/commands/generate-containerfile.md` | `/generate-containerfile [--lang go\|node\|generic] [--name NAME] [--port PORT] [--compose] [--with-db]`: loads this skill and runs the Create workflow end to end |
 
 ## Scope
 
