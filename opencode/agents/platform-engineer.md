@@ -67,6 +67,7 @@ permission:
     "git commit *": ask
     "git push *": ask
     "gh pr create *": ask
+    "kubectl get secret *": ask
     "kubectl get *": allow
     "kubectl describe *": allow
     "kubectl logs *": allow
