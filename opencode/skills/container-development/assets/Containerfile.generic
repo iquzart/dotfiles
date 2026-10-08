@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1
+# Resolve every <version> and <digest> to a real pinned value before use.
+ARG BUILD_IMAGE=<language-build-image>:<version>@sha256:<digest>
+ARG RUNTIME_IMAGE=<minimal-runtime-base>:<version>@sha256:<digest>
+
+# ---- Build stage ----
+FROM ${BUILD_IMAGE} AS build
+WORKDIR /src
+# 1. Dependency manifests first so the dependency layer caches
+COPY <dependency-manifests> ./
+RUN --mount=type=cache,target=<package-cache-dir> <install-dependencies>
+# 2. Then the source
+COPY . .
+RUN --mount=type=cache,target=<package-cache-dir> <build-command> -o /out/{{NAME}}
+
+# ---- Runtime stage ----
+FROM ${RUNTIME_IMAGE}
+# Runtime notes: supports --read-only; writable: /tmp (tmpfs)
+WORKDIR /app
+COPY --from=build --chown=10001:10001 /out/{{NAME}} /app/{{NAME}}
+USER 10001:10001
+# Health: /app/{{NAME}} healthcheck (defined in compose / orchestration, not here)
+EXPOSE {{PORT}}
+ENTRYPOINT ["/app/{{NAME}}"]
+
+# Dynamic labels last in the final stage so changing values don't bust the cache
+ARG VERSION=dev
+ARG REVISION=unknown
+ARG CREATED=unknown
+LABEL org.opencontainers.image.source="https://github.com/{{ORG}}/{{REPO}}" \
+      org.opencontainers.image.title="{{NAME}}" \
+      org.opencontainers.image.description="{{DESCRIPTION}}" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${REVISION}" \
+      org.opencontainers.image.created="${CREATED}"

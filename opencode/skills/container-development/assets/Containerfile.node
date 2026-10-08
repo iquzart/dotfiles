@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+# Resolve every <version> and <digest> to a real pinned value before use.
+ARG NODE_IMAGE=node:<version>-slim@sha256:<digest>
+
+# ---- Production dependencies ----
+FROM ${NODE_IMAGE} AS deps
+WORKDIR /src
+COPY package.json package-lock.json ./
+# Private registry: mount .npmrc as a secret instead of copying it:
+# RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci --omit=dev
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
+
+# ---- Build stage ----
+FROM ${NODE_IMAGE} AS build
+WORKDIR /src
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY . .
+RUN npm run build
+
+# ---- Runtime stage ----
+FROM ${NODE_IMAGE}
+# Runtime notes: supports --read-only; writable: /tmp. Run with an init (--init / init: true).
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=deps  --chown=1000:1000 /src/node_modules ./node_modules
+COPY --from=build --chown=1000:1000 /src/dist ./dist
+COPY --chown=1000:1000 package.json ./
+USER 1000:1000
+# Health: node dist/healthcheck.js (defined in compose / orchestration, not here)
+EXPOSE {{PORT}}
+ENTRYPOINT ["node", "dist/server.js"]
+
+# Dynamic labels last in the final stage so changing values don't bust the cache
+ARG VERSION=dev
+ARG REVISION=unknown
+ARG CREATED=unknown
+LABEL org.opencontainers.image.source="https://github.com/{{ORG}}/{{REPO}}" \
+      org.opencontainers.image.title="{{NAME}}" \
+      org.opencontainers.image.description="{{DESCRIPTION}}" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${REVISION}" \
+      org.opencontainers.image.created="${CREATED}"

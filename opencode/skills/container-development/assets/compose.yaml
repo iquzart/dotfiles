@@ -1,0 +1,74 @@
+name: {{NAME}}
+
+services:
+  {{NAME}}:
+    build:
+      context: .
+      dockerfile: Containerfile
+      args:
+        VERSION: ${VERSION:-dev}
+        REVISION: ${REVISION:-unknown}
+        CREATED: ${CREATED:-unknown}
+    image: {{NAME}}:dev
+    env_file:
+      - .env                      # gitignored; copy from .env.example
+    ports:
+      - "127.0.0.1:{{PORT}}:{{PORT}}"   # loopback only for local dev
+    networks: [backend]
+# >>> db
+    depends_on:
+      db:
+        condition: service_healthy
+# <<< db
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: {{HEALTHCHECK_TEST}}
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+# >>> db
+
+  db:
+    image: postgres:<version>@sha256:<digest>
+    env_file:
+      - .env
+    networks: [backend]
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]   # postgres entrypoint needs these
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+# <<< db
+
+networks:
+  backend:
+    name: {{NAME}}-backend
+# >>> db
+
+volumes:
+  db-data:
+    name: {{NAME}}-db-data
+# <<< db

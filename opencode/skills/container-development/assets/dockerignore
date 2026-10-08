@@ -1,0 +1,31 @@
+# Version control and editor/OS files
+.git
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+
+# Secrets and local config (never in the build context)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.aws/
+.ssh/
+
+# Dependencies and build output (rebuilt inside the container)
+node_modules
+dist
+build
+coverage
+*.log
+# Add `vendor` only if dependencies are fetched during the build.
+# Go projects that commit vendor/ must NOT ignore it.
+
+# Build definitions are not needed in the context
+Makefile
+compose.yaml
+docker-compose.yaml
+Containerfile
+Dockerfile

@@ -1,85 +1,100 @@
 ---
 name: container-development
-description: Authoring Dockerfiles, Containerfiles, and docker-compose files with security hardening, best practices, and standard labeling. Use when creating or reviewing a container build definition or a compose stack; not for CI/CD pipeline logic, image scanning execution, or Kubernetes manifests.
+description: Create new or optimize existing Containerfiles/Dockerfiles, compose files, .dockerignore, and the companion Makefile, with security hardening, standard OCI labels, and best practices. Use whenever the user mentions containerizing an app, a Containerfile, Dockerfile, docker-compose or compose.yaml, Podman or Docker builds, multi-stage builds, distroless/alpine/slim images, running as non-root, image size, build speed or layer caching, or asks to review, harden, or optimize any container build definition or compose stack, even if they don't name this skill. Always creates a Makefile alongside any new Containerfile or compose file. Not for CI/CD pipeline logic, executing image scans, or Kubernetes manifests.
 ---
 
 # Container Development
 
-## Naming convention
+Two workflows. Pick one first, then read only the references it points to.
 
-Use `Containerfile` as the standard filename for this team unless the target platform/tooling specifically requires `Dockerfile` (e.g. a managed build service that only recognizes that name). Do not mix both in the same repo. `docker-compose.yaml` (not `.yml`) for compose files, for consistency across projects.
+| User intent | Workflow |
+|---|---|
+| New project, "containerize this", "add a Containerfile/compose" | **Create** |
+| Existing Containerfile/Dockerfile/compose: review, harden, shrink, speed up | **Optimize** |
 
-## Structure (multi-stage build)
+## Create (new project)
 
-Every container build should use at least two stages:
+1. Detect the stack (Go, Node, other) and the service name, port, and repo from the project.
+2. Scaffold the deliverables with the script (never overwrites existing files):
+   ```bash
+   python scripts/scaffold.py --lang <go|node|generic> --name <service> --port <port> \
+     --org <github-org> --repo <repo> [--compose] [--with-db] [--dest .]
+   ```
+   Or copy from `assets/` by hand if the script can't run.
+3. Replace every remaining `<version>` / `<digest>` placeholder with a real pinned tag and digest (look them up; never invent digests) and adapt build commands to the project.
+4. Verify: `python scripts/check.py .` (must report no Blockers or Majors), plus `hadolint Containerfile` if installed.
+5. Tell the user what was created and which values they must confirm.
 
-1. **Build stage** — full toolchain (compiler, package manager), produces the artifact.
-2. **Runtime stage** — minimal base image, copies only the built artifact and runtime dependencies from the build stage. Nothing from the build toolchain should reach the final image.
+Deliverables are never just one file:
 
-```
-# Build stage
-FROM <language-build-image>:<pinned-version> AS build
-WORKDIR /src
-COPY . .
-RUN <build command>
+| File | When |
+|---|---|
+| `Containerfile` | Always |
+| `.dockerignore` | Always |
+| `Makefile` | **Always, whenever a Containerfile or compose file is created** |
+| `compose.yaml` | When requested, or the service has local dependencies |
+| `.env.example` | When compose or the app reads environment variables |
+| Base-image update automation | Check Renovate/Dependabot covers the repo; if not, flag it |
 
-# Runtime stage
-FROM <minimal-runtime-base>:<pinned-version>
-COPY --from=build /src/<artifact> /app/<artifact>
-USER <non-root-user>
-EXPOSE <port>
-ENTRYPOINT ["/app/<artifact>"]
-```
+If any already exists, extend it. Never overwrite or rename without asking. For an existing `Makefile`, merge the targets from `assets/Makefile` instead of replacing it.
 
-## Security
+## Optimize (existing files)
 
-- **Never use `latest`** for any base image tag — pin to a specific version or digest (`image:tag@sha256:...` for full reproducibility).
-- **Run as non-root.** Create a dedicated user in the build (or use a base image that already ships one, e.g. `nonroot` variants) and set `USER` before `ENTRYPOINT`. Never leave the default root user in the runtime stage.
-- **Minimal base images.** Prefer distroless, `-alpine`, or `-slim` variants for the runtime stage. Only use a full OS base image if the runtime genuinely needs shell/package-manager access (and if so, question why).
-- **No secrets in layers.** Never `COPY` or `ARG` secrets, credentials, or `.env` files into any stage — even the build stage, since intermediate layers persist in image history unless using BuildKit secret mounts (`RUN --mount=type=secret`). Secrets are injected at runtime, not build time.
-- **`.dockerignore` is mandatory.** Every project must have one excluding `.git`, `.env*`, local secrets, `node_modules`/`vendor` (rebuild inside container instead of copying from host), and any credentials directories.
-- **No unnecessary packages.** Don't install debugging tools, editors, or package manager caches in the runtime stage. Clean up build-time package manager caches within the same `RUN` layer they were created in, not a separate layer.
-- **Read-only filesystem where feasible.** If the app doesn't need to write to disk at runtime, document that the container can run with `--read-only` and mount only the specific writable paths it needs (e.g. `/tmp`).
-- **Healthcheck defined.** Include a `HEALTHCHECK` instruction (or document that orchestration-level health checks are used instead — don't silently omit both).
+1. Run `python scripts/check.py <path>` to get findings, and `hadolint <file>` if available.
+2. Read `references/review.md` for the report format and the optimization checklist (size, cache, build speed), then the topic reference for each finding.
+3. **Report first, don't silently fix.** List findings as `[Severity] file:line - issue - fix`, ordered by severity. Apply changes only after the user agrees.
+4. After approved changes, re-run `check.py` and `make size` and report before/after.
 
-## Best practices
+## Non-negotiables
 
-- **Layer ordering for cache efficiency:** copy dependency manifests (`go.mod`/`go.sum`, `package.json`, etc.) and install dependencies *before* copying the rest of the source, so dependency layers cache across builds when only application code changes.
-- **One process per container.** Don't use the container as a general-purpose VM; if multiple processes are genuinely needed, that's a docker-compose/orchestration decision, not a single-image decision.
-- **Explicit `EXPOSE`.** Document every port the container listens on, even though `EXPOSE` doesn't enforce anything — it's documentation for the next person (and for compose/K8s tooling that reads it).
-- **Build args vs. env vars.** Use `ARG` only for build-time values (version pins, build flags). Use `ENV` (set at runtime via orchestration, not hardcoded) for runtime configuration. Never use `ARG` for anything secret — it's visible in `docker history`.
-- **Keep the image small.** Check final image size as part of review; a sudden jump usually means a stray cache or unnecessary layer crept in.
+These always apply in both workflows. Detail and rationale are in `references/`.
 
-## Standard OCI labels
+- Never `latest`; pin tag and digest; keep digests fresh via Renovate/Dependabot.
+- Multi-stage build; minimal runtime base.
+- Run as non-root with a **numeric** `USER`.
+- No secrets in `ARG`, `ENV`, or `COPY`; use BuildKit secret mounts for build-time secrets.
+- **No `HEALTHCHECK` in Containerfiles.** Health is defined in compose and the orchestration platform.
+- Exec-form `ENTRYPOINT`/`CMD`.
+- Standard OCI labels; dynamic ones as `ARG`s declared late in the final stage.
+- `.dockerignore` exists; `Makefile` exists.
+- Compose: pinned images, resource limits, healthchecks with `service_healthy` ordering, named network and volumes, no plaintext secrets.
 
-Every image must set these labels for traceability back to source:
+## Reference index
 
-```
-LABEL org.opencontainers.image.source="https://github.com/<org>/<repo>"
-LABEL org.opencontainers.image.revision="<git-sha, injected at build time via ARG>"
-LABEL org.opencontainers.image.version="<semver or tag, injected at build time via ARG>"
-LABEL org.opencontainers.image.created="<build timestamp, injected at build time via ARG>"
-LABEL org.opencontainers.image.title="<service name>"
-LABEL org.opencontainers.image.description="<short description>"
-```
+Read only what the task needs.
 
-Inject `revision`/`version`/`created` via `ARG` passed from the CI workflow (owned by `platform-engineer` in `github-development`/`github-delivery`), not hardcoded — this keeps the Containerfile itself environment-agnostic while every built image is traceable to an exact commit.
+| File | Read when |
+|---|---|
+| `references/containerfile.md` | Writing or restructuring a Containerfile: naming, engine, stages, base image choice, layers, process handling, labels, health contract, `.dockerignore` |
+| `references/security.md` | Anything touching users, secrets, pinning, base images, or hardening |
+| `references/compose.md` | Writing or reviewing a compose file |
+| `references/makefile.md` | Creating or merging the Makefile |
+| `references/review.md` | Optimize workflow: severity table, report format, optimization checklist |
 
-## docker-compose standards
+## Assets (templates, copied by `scaffold.py`)
 
-- **Service naming** — match the service name to the repo/component name, not generic names like `app` or `web`.
-- **Networks** — define an explicit named network per stack; don't rely on the default bridge network across unrelated stacks.
-- **Secrets/env** — never commit plaintext secrets or `.env` files with real values into the compose file or repo. Use `env_file` pointing to a gitignored local file for local dev, and document that real environments inject env vars through the orchestration platform (Kubernetes secrets, not compose, in staging/prod).
-- **Resource limits** — set `deploy.resources.limits` (cpu/memory) even for local compose stacks, so behavior under constraint is tested early, not discovered in production.
-- **Dependency ordering** — use `depends_on` with `condition: service_healthy` (requires a `healthcheck` on the dependency), not just startup-order `depends_on`, since process-started does not mean service-ready.
-- **Volumes** — name volumes explicitly; avoid anonymous volumes that make cleanup and debugging harder.
+| File | Purpose |
+|---|---|
+| `assets/Containerfile.generic` | Language-agnostic template that passes every rule |
+| `assets/Containerfile.go` | Go, static binary on distroless |
+| `assets/Containerfile.node` | Node, prod-deps stage plus slim runtime |
+| `assets/compose.yaml` | App plus optional Postgres, fully hardened |
+| `assets/Makefile` | Local build/run/lint/size/compose targets |
+| `assets/dockerignore` | Becomes `.dockerignore` |
+| `assets/env.example` | Becomes `.env.example` |
 
-## Rules
+Placeholders in assets use `{{NAME}}`, `{{PORT}}`, `{{ORG}}`, `{{REPO}}`, `{{DESCRIPTION}}`, filled by the script. Image tags use `<version>`/`<digest>` and must be resolved by hand.
 
-- Do not put build/scan/push logic in the Containerfile itself — that belongs in the GitHub Actions workflow (`github-development`) or delivery pipeline (`github-delivery`), not here.
-- Do not reference Kubernetes-specific concerns (resource requests/limits at the pod level, liveness/readiness probe paths) in this skill — align the container's `HEALTHCHECK`/`EXPOSE` with what `kubernetes-operations` expects, but manifest authoring lives there, not here.
-- Flag (don't silently fix) any existing Containerfile found using `latest`, running as root, or missing OCI labels during review — these are the most common regressions.
+## Scripts
 
-## Escalation
+| Script | Use |
+|---|---|
+| `scripts/scaffold.py` | Create workflow: writes deliverables from assets without overwriting |
+| `scripts/check.py` | Both workflows: static rule checker for Containerfiles and compose files; exit code 1 if any Blocker. Containerfile checks use only the standard library; compose checks need PyYAML and are skipped with a note if it is missing |
 
-For build performance issues (slow builds, cache invalidation debugging, BuildKit-specific features like cache mounts across CI runners), route to `platform-engineer`'s broader CI/CD context rather than treating it as a container-development-only concern.
+## Scope
+
+- No build, scan, or push logic in the Containerfile. That belongs to the GitHub Actions workflow (`github-development`) or delivery pipeline (`github-delivery`). The Makefile has no push/scan/deploy targets either.
+- No Kubernetes manifests or probe paths here. Keep `EXPOSE`, the documented health contract, and the numeric `USER` consistent with what `kubernetes-operations` expects.
+- If a referenced skill (`platform-engineer`, `github-development`, `github-delivery`, `kubernetes-operations`) isn't available, say so, state your assumption, and continue.
+- Build performance problems in CI (cache invalidation across runners, BuildKit cache mounts in CI) go to `platform-engineer`.
