@@ -67,6 +67,9 @@ permission:
     "git commit *": ask
     "git push *": ask
     "gh pr create *": ask
+    "docker *": allow
+    "podman *": allow
+    "make *": allow
     "kubectl get secret *": ask
     "kubectl get *": allow
     "kubectl describe *": allow
