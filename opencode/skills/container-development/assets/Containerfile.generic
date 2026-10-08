@@ -15,6 +15,17 @@ RUN --mount=type=cache,target=<package-cache-dir> <build-command> -o /out/{{NAME
 
 # ---- Runtime stage ----
 FROM ${RUNTIME_IMAGE}
+# Dynamic labels last in the final stage so changing values don't bust the cache
+ARG VERSION=dev
+ARG REVISION=unknown
+ARG CREATED=unknown
+LABEL org.opencontainers.image.source="https://github.com/{{ORG}}/{{REPO}}" \
+  org.opencontainers.image.title="{{NAME}}" \
+  org.opencontainers.image.description="{{DESCRIPTION}}" \
+  org.opencontainers.image.version="${VERSION}" \
+  org.opencontainers.image.revision="${REVISION}" \
+  org.opencontainers.image.created="${CREATED}"
+
 # Runtime notes: supports --read-only; writable: /tmp (tmpfs)
 WORKDIR /app
 COPY --from=build --chown=10001:10001 /out/{{NAME}} /app/{{NAME}}
@@ -23,13 +34,3 @@ USER 10001:10001
 EXPOSE {{PORT}}
 ENTRYPOINT ["/app/{{NAME}}"]
 
-# Dynamic labels last in the final stage so changing values don't bust the cache
-ARG VERSION=dev
-ARG REVISION=unknown
-ARG CREATED=unknown
-LABEL org.opencontainers.image.source="https://github.com/{{ORG}}/{{REPO}}" \
-      org.opencontainers.image.title="{{NAME}}" \
-      org.opencontainers.image.description="{{DESCRIPTION}}" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.revision="${REVISION}" \
-      org.opencontainers.image.created="${CREATED}"

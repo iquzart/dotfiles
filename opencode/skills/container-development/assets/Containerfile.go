@@ -16,14 +16,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 # ---- Runtime stage ----
 FROM ${RUNTIME_IMAGE}
-# Runtime notes: supports --read-only; no writable paths required
-WORKDIR /app
-COPY --from=build --chown=65532:65532 /out/{{NAME}} /app/{{NAME}}
-USER 65532:65532
-# Health: /app/{{NAME}} healthcheck (defined in compose / orchestration, not here)
-EXPOSE {{PORT}}
-ENTRYPOINT ["/app/{{NAME}}"]
-
 # Dynamic labels last in the final stage so changing values don't bust the cache
 ARG VERSION=dev
 ARG REVISION=unknown
@@ -34,3 +26,14 @@ LABEL org.opencontainers.image.source="https://github.com/{{ORG}}/{{REPO}}" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.revision="${REVISION}" \
       org.opencontainers.image.created="${CREATED}"
+
+
+# Runtime notes: supports --read-only; no writable paths required
+WORKDIR /app
+COPY --from=build --chown=65532:65532 /out/{{NAME}} /app/{{NAME}}
+USER 65532:65532
+# Health: /app/{{NAME}} healthcheck (defined in compose / orchestration, not here)
+EXPOSE {{PORT}}
+ENTRYPOINT ["/app/{{NAME}}"]
+
+
