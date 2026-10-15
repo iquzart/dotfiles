@@ -2,11 +2,8 @@
 description: Container platform engineer for Terraform/OpenTofu infrastructure, Helm releases, node pool/scaling, GitHub Actions workflow YAML, read-only cluster debugging, and ephemeral kind test clusters. Does not touch application code or bash/python tooling scripts.
 mode: subagent
 color: "#16A34A"
-steps: 12
+steps: 30
 temperature: 0.2
-version: 1.2.0
-owner: "platform-team"
-last_reviewed: 2026-09-04
 permission:
   read: allow
   edit: allow
@@ -17,6 +14,9 @@ permission:
   todowrite: deny
   webfetch: allow
   websearch: ask
+  external_directory:
+    "/tmp/**": allow
+    "~/Documents/workspace/**": allow
   skill:
     "*": deny
     infrastructure-development: allow
@@ -28,75 +28,60 @@ permission:
     container-development: allow
   "grafana_*": deny
   "atlassian_*": deny
+  # Only platform-specific rules live here.
   bash:
-    "*": ask
-    # Allow all git commands...
-    "git *": allow
-
-    # ...then override the ones that delete/remove/destroy (must come AFTER "git *")
-    "git rm*": deny
-    "git clean*": deny
-    "git branch -d*": deny
-    "git branch -D*": deny
-    "git branch --delete*": deny
-    "git tag -d*": deny
-    "git tag --delete*": deny
-    "git push * --delete*": deny
-    "git push * -d *": deny
-    "git push * :*": deny
-    "git push *--force*": deny
-    "git push * -f*": deny
-    "git reset --hard*": deny
-    "git checkout -- *": deny
-    "git restore *": deny
-    "git stash drop*": deny
-    "git stash clear*": deny
-    "git worktree remove*": deny
-    "git worktree prune*": deny
-    "git remote remove*": deny
-    "git remote rm*": deny
-    "git submodule deinit*": deny
-    "git reflog expire*": deny
-    "git reflog delete*": deny
-    "git gc*": deny
-    "git prune*": deny
-    "git filter-branch*": deny
-    "git update-ref -d*": deny
-
-    # Keep your approval gates for publishing actions (also AFTER "git *")
-    "git commit *": ask
-    "git push *": ask
-    "gh pr create *": ask
+    # Containers and build
     "docker *": allow
     "podman *": allow
     "make *": allow
-    "kubectl get secret *": ask
-    "kubectl get *": allow
-    "kubectl describe *": allow
-    "kubectl logs *": allow
-    "kubectl diff *": allow
-    "helm list *": allow
-    "helm get *": allow
-    "helm history *": allow
-    "helm lint *": allow
-    "helm template *": allow
+
+    # Risky docker forms: ask (must come AFTER the broad allow)
+    "docker run *--privileged*": ask
+    "docker rm *": ask
+    "docker rmi *": ask
+    "docker system prune*": ask
+    "docker volume rm*": ask
+
+    # Helm
+    "helm show *": allow
+    "helm search *": allow
+    "helm repo *": allow
+    "helm dependency build *": allow
+    "helm dependency update *": allow
+
+    # Terraform / OpenTofu (apply and destroy stay on ask via the global "*": ask)
+    "terraform init*": allow
+    "terraform fmt*": allow
     "terraform plan *": allow
     "terraform validate *": allow
+    "terraform output*": allow
+    "terraform show*": allow
+    "terraform providers*": allow
+    "terraform state list*": allow
+    "terraform state show*": allow
+    "tofu init*": allow
+    "tofu fmt*": allow
     "tofu plan *": allow
     "tofu validate *": allow
+    "tofu output*": allow
+    "tofu show*": allow
+    "tofu providers*": allow
+    "tofu state list*": allow
+    "tofu state show*": allow
+
+    # kind
     "kind create cluster *": allow
     "kind delete cluster *": allow
     "kind load *": allow
-    "kind get clusters": allow
-    "kind get nodes*": allow
-    "terraform apply -auto-approve*": deny
-    "tofu apply -auto-approve*": deny
-    "kubectl delete -A*": deny
-    "kubectl delete --all*": deny
-    "cat ~/.kube/config": deny
-    "cat ~/.aws/credentials": deny
-    "rm *": deny
-    "sudo *": deny
+    "kind get *": allow
+    "kind export *": allow
+
+    # Cluster debugging
+    "kubectl rollout status *": allow
+    "kubectl wait *": allow
+    "kubectl api-resources*": allow
+    "kubectl config get-contexts*": allow
+    "kubectl config current-context": allow
 ---
 # Platform Engineer
 

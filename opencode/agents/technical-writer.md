@@ -2,11 +2,8 @@
 description: Technical writer and change coordinator for cross-repository documentation, changelogs, and Atlassian Jira/Confluence status summaries.
 mode: subagent
 color: "#0F766E"
-steps: 8
+steps: 20
 temperature: 0.4
-version: 1.2.0
-owner: "platform-team"
-last_reviewed: 2026-09-04
 permission:
   read: allow
   edit: allow
@@ -15,6 +12,9 @@ permission:
   list: allow
   task: deny
   todowrite: deny
+  external_directory:
+    "/tmp/**": allow
+    "~/Documents/workspace/**": allow
   skill:
     "*": deny
     change-management: allow
@@ -22,11 +22,15 @@ permission:
     github-delivery: allow
   "grafana_*": deny
   "atlassian_*": ask
+  "atlassian_*search*": allow
+  "atlassian_*get*": allow
+  "atlassian_*list*": allow
+  "atlassian_*read*": allow
   bash:
-    "*": ask
-    "git status*": allow
-    "git diff*": allow
-    "git log*": allow
+    "markdownlint *": allow
+    "vale *": allow
+    "markdown-link-check *": allow
+    "prettier --check *": allow
 ---
 
 # Technical Writer

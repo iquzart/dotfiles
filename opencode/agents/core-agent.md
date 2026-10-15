@@ -2,11 +2,8 @@
 description: Core Agent primary router for platform, reliability, security, documentation, scripts, and Go backend work; no execute credentials.
 mode: primary
 color: "#2563EB"
-steps: 12
+steps: 30
 temperature: 0.2
-version: 1.4.0
-owner: "platform-team"
-last_reviewed: 2026-09-04
 permission:
   read: allow
   edit: deny
@@ -16,6 +13,9 @@ permission:
   task: allow
   todowrite: allow
   skill: deny
+  external_directory:
+    "/tmp/**": allow
+    "~/Documents/workspace/**": allow
   "grafana_*": deny
   "atlassian_*": deny
   bash: deny

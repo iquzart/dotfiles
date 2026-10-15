@@ -2,33 +2,34 @@
 description: Grafana reliability engineer for observability, SLO/SLI tracking, Alertmanager incident triage, deploy correlation, dashboard development, and read-only Kubernetes triage.
 mode: subagent
 color: "#EA580C"
-steps: 10
+steps: 25
 temperature: 0.3
-version: 1.2.0
-owner: "platform-team"
-last_reviewed: 2026-09-04
 permission:
+  # Catch-all deny goes FIRST so the specific allows after it can win (later rules win)
   read:
+    "*": deny
     "*.md": allow
     "*.json": allow
     "*.jsonc": allow
     "*.yaml": allow
     "*.yml": allow
     "*.txt": allow
-    "*": deny
   edit:
+    "*": deny
     "*.md": allow
     "*.json": allow
     "*.jsonc": allow
     "*.yaml": allow
     "*.yml": allow
     "*.txt": allow
-    "*": deny
   glob: allow
   grep: allow
   list: allow
   task: deny
   todowrite: deny
+  external_directory:
+    "/tmp/**": allow
+    "~/Documents/workspace/**": allow
   skill:
     "*": deny
     grafana-development: allow
@@ -41,57 +42,43 @@ permission:
     github-delivery: allow
   "grafana_*": allow
   "atlassian_*": deny
+  # Only reliability-specific rules live here.
   bash:
-    "*": ask
-    # Allow all git commands...
-    "git *": allow
+    # Namespace/context forms of read-only kubectl (the plain forms are global)
+    "kubectl -n * get *": allow
+    "kubectl -n * describe *": allow
+    "kubectl -n * logs *": allow
+    "kubectl --namespace * get *": allow
+    "kubectl --context * get *": allow
+    "kubectl --context * describe *": allow
+    "kubectl --context * logs *": allow
+    "kubectl top *": allow
+    "kubectl events *": allow
+    "kubectl config get-contexts*": allow
+    "kubectl config current-context": allow
 
-    # ...then override the ones that delete/remove/destroy (must come AFTER "git *")
-    "git rm*": deny
-    "git clean*": deny
-    "git branch -d*": deny
-    "git branch -D*": deny
-    "git branch --delete*": deny
-    "git tag -d*": deny
-    "git tag --delete*": deny
-    "git push * --delete*": deny
-    "git push * -d *": deny
-    "git push * :*": deny
-    "git push *--force*": deny
-    "git push * -f*": deny
-    "git reset --hard*": deny
-    "git checkout -- *": deny
-    "git restore *": deny
-    "git stash drop*": deny
-    "git stash clear*": deny
-    "git worktree remove*": deny
-    "git worktree prune*": deny
-    "git remote remove*": deny
-    "git remote rm*": deny
-    "git submodule deinit*": deny
-    "git reflog expire*": deny
-    "git reflog delete*": deny
-    "git gc*": deny
-    "git prune*": deny
-    "git filter-branch*": deny
-    "git update-ref -d*": deny
+    # Secrets: re-gate AFTER the broad allows above (later rules win)
+    "kubectl get secret*": ask
+    "kubectl -n * get secret*": ask
+    "kubectl --namespace * get secret*": ask
+    "kubectl --context * get secret*": ask
 
-    # Keep your approval gates for publishing actions (also AFTER "git *")
-    "git commit *": ask
-    "git push *": ask
-    "gh pr create *": ask
-    "kubectl get *": allow
-    "kubectl describe *": allow
-    "kubectl logs *": allow
+    # Observability CLIs
+    "promtool check *": allow
+    "promtool query *": allow
+    "amtool alert*": allow
+    "amtool silence query*": allow
+    "amtool config*": allow
+
+    # Cluster-mutating commands: hard deny
     "kubectl exec *": deny
     "kubectl cp *": deny
     "kubectl apply *": deny
     "kubectl delete *": deny
     "kubectl edit *": deny
-    "git reset *": deny
-    "git clean *": deny
-    "rm *": deny
-    "sudo *": deny
+    "kubectl patch *": deny
+    "kubectl scale *": deny
+    "kubectl rollout restart *": deny
 ---
 
 # Reliability Engineer

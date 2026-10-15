@@ -2,11 +2,8 @@
 description: "Go backend engineer for backend service repositories: API application development, endpoints, business logic, tests, and refactors."
 mode: subagent
 color: "#2563EB"
-steps: 10
+steps: 40
 temperature: 0.2
-version: 1.2.0
-owner: "platform-team"
-last_reviewed: 2026-09-04
 permission:
   read: allow
   edit: allow
@@ -17,6 +14,9 @@ permission:
   codesearch: allow
   task: deny
   todowrite: deny
+  external_directory:
+    "/tmp/**": allow
+    "~/Documents/workspace/**": allow
   skill:
     "*": deny
     go-development: allow
@@ -24,47 +24,20 @@ permission:
     github-delivery: allow
   "grafana_*": deny
   "atlassian_*": deny
+  # Only Go-specific rules live here.
   bash:
-    "*": ask
-    # Allow all git commands...
-    "git *": allow
-
-    # ...then override the ones that delete/remove/destroy (must come AFTER "git *")
-    "git rm*": deny
-    "git clean*": deny
-    "git branch -d*": deny
-    "git branch -D*": deny
-    "git branch --delete*": deny
-    "git tag -d*": deny
-    "git tag --delete*": deny
-    "git push * --delete*": deny
-    "git push * -d *": deny
-    "git push * :*": deny
-    "git push *--force*": deny
-    "git push * -f*": deny
-    "git reset --hard*": deny
-    "git checkout -- *": deny
-    "git restore *": deny
-    "git stash drop*": deny
-    "git stash clear*": deny
-    "git worktree remove*": deny
-    "git worktree prune*": deny
-    "git remote remove*": deny
-    "git remote rm*": deny
-    "git submodule deinit*": deny
-    "git reflog expire*": deny
-    "git reflog delete*": deny
-    "git gc*": deny
-    "git prune*": deny
-    "git filter-branch*": deny
-    "git update-ref -d*": deny
-
-    # Keep your approval gates for publishing actions (also AFTER "git *")
-    "git commit *": ask
-    "git push *": ask
-    "gh pr create *": ask
+    # Broad allow first, then the riskier forms re-gated AFTER it (later rules win)
     "go *": allow
-    "golangci-lint run *": allow
+    "go install *": ask
+    "go generate *": ask
+    "go get *": ask
+    "go clean *": ask
+    "gofmt *": allow
+    "goimports *": allow
+    "golangci-lint *": allow
+    "govulncheck *": allow
+    "mockgen *": allow
+    "swag *": allow
 ---
 
 # Backend Engineer

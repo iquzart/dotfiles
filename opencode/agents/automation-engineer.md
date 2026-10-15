@@ -2,11 +2,8 @@
 description: Automation engineer for Bash/Python automation, internal CLIs, tooling scripts, and default git commit/push/PR delivery; no application code or infrastructure-as-code authoring.
 mode: subagent
 color: "#CA8A04"
-steps: 10
+steps: 30
 temperature: 0.2
-version: 1.2.0
-owner: "platform-team"
-last_reviewed: 2026-09-04
 permission:
   read: allow
   edit: allow
@@ -15,6 +12,9 @@ permission:
   list: allow
   task: deny
   todowrite: deny
+  external_directory:
+    "/tmp/**": allow
+    "~/Documents/workspace/**": allow
   skill:
     "*": deny
     bash-development: allow
@@ -23,48 +23,11 @@ permission:
   "grafana_*": deny
   "atlassian_*": deny
   bash:
-    "*": ask
-    "pytest *": allow
-    "python -m pytest *": allow
-    "ruff check *": allow
-    "shellcheck *": allow
-    # Allow all git commands...
-    "git *": allow
-
-    # ...then override the ones that delete/remove/destroy (must come AFTER "git *")
-    "git rm*": deny
-    "git clean*": deny
-    "git branch -d*": deny
-    "git branch -D*": deny
-    "git branch --delete*": deny
-    "git tag -d*": deny
-    "git tag --delete*": deny
-    "git push * --delete*": deny
-    "git push * -d *": deny
-    "git push * :*": deny
-    "git push *--force*": deny
-    "git push * -f*": deny
-    "git reset --hard*": deny
-    "git checkout -- *": deny
-    "git restore *": deny
-    "git stash drop*": deny
-    "git stash clear*": deny
-    "git worktree remove*": deny
-    "git worktree prune*": deny
-    "git remote remove*": deny
-    "git remote rm*": deny
-    "git submodule deinit*": deny
-    "git reflog expire*": deny
-    "git reflog delete*": deny
-    "git gc*": deny
-    "git prune*": deny
-    "git filter-branch*": deny
-    "git update-ref -d*": deny
-
-    # Keep your approval gates for publishing actions (also AFTER "git *")
-    "git commit *": ask
-    "git push *": ask
-    "gh pr create *": ask
+    "pre-commit run *": allow
+    "yamllint *": allow
+    "bats *": allow
+    "python3 -m venv *": allow
+    "pip install -r *": ask
 ---
 
 # Automation Engineer
