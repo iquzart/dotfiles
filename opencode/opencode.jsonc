@@ -1,170 +1,138 @@
+// ============================================================
+// opencode.jsonc — AI Coding + Terminal Assistant (OpenCode 2.x native format)
+// Place at: ~/.config/opencode/opencode.jsonc
+// Docs: https://opencode.ai/v2/docs/config
+//
+// This file uses the native V2 shape. Do NOT point OpenCode 1.x at it.
+// Log level is no longer a config field. Start OpenCode with:
+//   export OPENCODE_LOG_LEVEL=WARN
+// ============================================================
 {
-  // ============================================================
-  // opencode.jsonc — AI Coding + Terminal Assistant
-  // Place at: ~/.config/opencode/opencode.jsonc
-  // Docs: https://opencode.ai/docs
-  // ============================================================
   "$schema": "https://opencode.ai/config.json",
   // ============================================================
   // GENERAL
   // ============================================================
   "shell": "/bin/bash",
-  "logLevel": "WARN",
   "share": "disabled",
-  "autoupdate": "notify",
-  "snapshot": true,
+  "update": "notify", // was: autoupdate
+  "snapshots": true, // was: snapshot
   // ============================================================
   // DEFAULT AGENT & MODELS
-  // OpenAI is the active provider. Ollama is retained below but disabled.
+  // OpenAI is the active provider. Ollama is parked (see PLUGINS).
+  // small_model now lives on the built-in "title" agent (see AGENTS).
   // ============================================================
   "default_agent": "core-agent",
   "model": "openai/gpt-6.1-sol",
-  // Use Sol until a lower-latency OpenAI model is configured.
-  "small_model": "openai/gpt-5.6-terra",
   // ============================================================
-  // Plugins
+  // PLUGINS
+  // V1 plugins do not run in V2. Port them before adding here.
+  // "-opencode.provider.ollama" disables Ollama auto-discovery
+  // (V2 probes http://127.0.0.1:11434 by default). Remove that
+  // entry to re-enable local Ollama models.
   // ============================================================
-  "plugin": [
-    "opencode-plugin-openspec",
+  "plugins": [
+    "-opencode.provider.ollama"
   ],
   // ============================================================
   // SKILLS
-  // Loaded on demand per agent — never global
-  // Place skill files at: ~/.config/opencode/skills/
+  // V2 takes one ordered array of paths and URLs.
+  // Place skill dirs at: ~/.config/opencode/skills/<skill-id>/SKILL.md
   // ============================================================
-  "skills": {
-    "paths": [
-      "~/.config/opencode/skills"
-    ]
-  },
+  "skills": [
+    "~/.config/opencode/skills"
+  ],
   // ============================================================
   // MCP SERVERS
-  // Grafana tools are scoped to reliability-engineer; Atlassian tools are scoped to doc-agent.
-  // Required environment variables must be set before use.
+  // Servers live under mcp.servers; "enabled" became "disabled".
+  // Env vars are resolved by the OpenCode background service, so export
+  // them BEFORE the service starts (restart it after changing them).
   // ============================================================
   "mcp": {
-    "grafana": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "mcp-grafana"
-      ],
-      "enabled": true,
-      "environment": {
-        "GRAFANA_URL": "{env:GRAFANA_URL}",
-        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
-      }
-    },
-    "atlassian": {
-      "type": "local",
-      "command": [
-        "uvx",
-        "mcp-atlassian"
-      ],
-      "enabled": true,
-      "environment": {
-        "JIRA_URL": "{env:JIRA_URL}",
-        "JIRA_USERNAME": "{env:JIRA_USERNAME}",
-        "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}"
+    "servers": {
+      "grafana": {
+        "type": "local",
+        "command": [
+          "uvx",
+          "mcp-grafana"
+        ],
+        "disabled": false,
+        "environment": {
+          "GRAFANA_URL": "{env:GRAFANA_URL}",
+          "GRAFANA_SERVICE_ACCOUNT_TOKEN": "{env:GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+        }
+      },
+      "atlassian": {
+        "type": "local",
+        "command": [
+          "uvx",
+          "mcp-atlassian"
+        ],
+        "disabled": false,
+        "environment": {
+          "JIRA_URL": "{env:JIRA_URL}",
+          "JIRA_USERNAME": "{env:JIRA_USERNAME}",
+          "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}"
+          // Confluence tools need their own credentials. Uncomment and export these
+          // if the doc agent should read/write Confluence pages:
+          // "CONFLUENCE_URL": "{env:CONFLUENCE_URL}",
+          // "CONFLUENCE_USERNAME": "{env:CONFLUENCE_USERNAME}",
+          // "CONFLUENCE_API_TOKEN": "{env:CONFLUENCE_API_TOKEN}"
+        }
       }
     }
   },
   // ============================================================
   // PROVIDERS
+  // "provider" -> "providers"; "npm" -> "package" (aisdk: prefix);
+  // "options" -> "settings"; model flags -> "capabilities".
   // ============================================================
-  "provider": {
-    /*
-    // ----------------------------------------------------------
-    // PARKED: Ollama
-    // To reactivate, remove this block comment and set model and
-    // small_model above to fully-qualified ollama/<model> values.
-    // Start: ollama serve
-    // Pull:  ollama pull gemma4:e4b && ollama pull qwen3:balanced
-    // ----------------------------------------------------------
-    "ollama": {
-      "name": "Ollama (Local)",
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "http://127.0.0.1:11434/v1",
-        "thinking": false
-      },
-      "models": {
-        // Primary coder — best local quality
-        "gemma4:e4b": {
-          "name": "Gemma4 4B (Coder)",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
-        },
-        // Fast model — router and quick tasks
-        "gemma4:e2b": {
-          "name": "Gemma4 2B (Router/Fast)",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
-        },
-        // Fast model — router and quick tasks
-        "qwen25coder:stable": {
-          "name": "Qwen2.5 Coder 7B (Router/Fast)",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
-        },
-        // Reasoning — complex infra, debugging
-        "qwen3:balanced": {
-          "name": "Qwen3 Balanced (Reasoning)",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
-        },
-        // Extended reasoning — architecture, hard problems
-        "qwen35:balanced": {
-          "name": "Qwen3.5 Balanced (Deep Reasoning)",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
-        }
-      }
-    },
-    */
+  "providers": {
     // ----------------------------------------------------------
     // FREE PUBLIC: OpenRouter
-    // Get free key: https://openrouter.ai
-    // Export: export OPENROUTER_API_KEY=sk-or-...
+    // Uses V2's native OpenRouter runtime. The key is read from
+    // OPENROUTER_API_KEY automatically (export OPENROUTER_API_KEY=sk-or-...).
     // Used for: docs agent (large context, writing quality)
     // ----------------------------------------------------------
     "openrouter": {
       "name": "OpenRouter (Free Public)",
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://openrouter.ai/api/v1",
-        "apiKey": "${OPENROUTER_API_KEY}"
-      },
       "models": {
         // Large context — runbooks, ADRs, long docs
         "meta-llama/llama-4-scout:free": {
           "name": "Llama 4 Scout (Free)",
-          "tools": true,
-          "reasoning": false,
-          "vision": true
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         },
         // Efficient writing — READMEs, changelogs, specs
         "mistralai/mistral-small-3.2-24b-instruct:free": {
           "name": "Mistral Small 3.2 (Free)",
-          "tools": true,
-          "reasoning": false,
-          "vision": false
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         }
       }
     },
     // ----------------------------------------------------------
-    // ACTIVE: OpenAI
-    // Export: export OPENAI_API_KEY=sk-...
+    // ACTIVE: OpenAI (AI Hub gateway)
+    // Export: export OPENAI_API_KEY=sk-... OPENAI_BASE_URL=https://...
     // ----------------------------------------------------------
     "openai": {
       "name": "OpenAI (AI Hub)",
-      "npm": "@ai-sdk/openai",
-      "options": {
+      "package": "aisdk:@ai-sdk/openai",
+      "settings": {
         "apiKey": "{env:OPENAI_API_KEY}",
         "baseURL": "{env:OPENAI_BASE_URL}"
       },
@@ -172,405 +140,1707 @@
         // Best cost/quality — complex code, hard reviews
         "gpt-6.1-sol": {
           "name": "GPT 6.1 Sol",
-          "tools": true,
-          "reasoning": true,
-          "vision": true
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         },
         "gpt-5.6-terra": {
           "name": "GPT 5.6 Terra",
-          "tools": true,
-          "reasoning": true,
-          "vision": true
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         },
         // Deep reasoning — architecture decisions
         "gpt-5.6-luna": {
           "name": "GPT 5.6 Luna",
-          "tools": true,
-          "reasoning": true,
-          "vision": false
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         }
       }
     }
   },
   // ============================================================
   // GLOBAL PERMISSIONS
-  // Reads open. Writes/exec gated. Secrets always denied.
-  // Agent-level permissions override these where needed.
-  // ORDER MATTERS: later matching rules win.
+  // One ordered array. The LAST matching rule wins, so order is:
   //   1. catch-all ask  2. allows  3. asks  4. safe sub-forms re-allowed
   //   5. loophole re-gates  6. hard denies (always last)
+  // Agent-level permissions are appended after these and can override them.
+  // Actions renamed: bash -> shell. A trailing " *" also matches the bare command.
+  // Any deny in a compound command denies the whole command.
+  // Anything not listed falls back to V2's base policy (allow, with
+  // external_directory asking).
   // ============================================================
-  "permission": {
-    "read": "allow",
-    "edit": {
-      "*": "allow",
-      "*.env": "deny",
-      "*.env.*": "deny",
-      "*.env.example": "allow",
-      "**/.ssh/**": "deny",
-      "**/.aws/**": "deny",
-      "**/.gnupg/**": "deny"
+  "permissions": [
+    // --- Reads open; secrets closed ---
+    {
+      "action": "read",
+      "resource": "*",
+      "effect": "allow"
     },
-    "glob": "allow",
-    "grep": "allow",
-    "list": "allow",
-    "lsp": "allow",
-    "codesearch": "allow",
-    "webfetch": "ask",
-    "websearch": "ask",
-    "todowrite": "allow",
-    "external_directory": {
-      "/tmp/**": "allow",
-      "~/Documents/workspace/**": "allow"
+    {
+      "action": "read",
+      "resource": "*.env",
+      "effect": "deny"
     },
-    "bash": {
-      // --- Catch-all: anything not listed below prompts ---
-      "*": "ask",
-      // --- Safe read-only ---
-      "ls": "allow",
-      "ls *": "allow",
-      "ls -la *": "allow",
-      "pwd": "allow",
-      "whoami": "allow",
-      "echo *": "allow",
-      "cat *": "allow",
-      "grep *": "allow",
-      "find *": "allow",
-      "which *": "allow",
-      "env": "allow",
-      "uname *": "allow",
-      "date": "allow",
-      "uptime": "allow",
-      "ps *": "allow",
-      "top -bn1": "allow",
-      "df *": "allow",
-      "du *": "allow",
-      "free *": "allow",
-      "lsof *": "allow",
-      "jq *": "allow",
-      "awk *": "allow",
-      "sed *": "allow",
-      "cut *": "allow",
-      "sort *": "allow",
-      "uniq *": "allow",
-      "wc *": "allow",
-      "head *": "allow",
-      "tail *": "allow",
-      "tr *": "allow",
-      "curl -s *": "allow",
-      "curl --silent *": "allow",
-      "dig *": "allow",
-      "ping -c *": "allow",
-      // added
-      "cd *": "allow",
-      "test *": "allow",
-      "stat *": "allow",
-      "file *": "allow",
-      "basename *": "allow",
-      "dirname *": "allow",
-      "realpath *": "allow",
-      "tree *": "allow",
-      "diff *": "allow",
-      // --- Kubernetes read-only ---
-      "kubectl get *": "allow",
-      "kubectl describe *": "allow",
-      "kubectl logs *": "allow",
-      "kubectl explain *": "allow",
-      "kubectl top *": "allow",
-      "kubectl diff *": "allow",
-      "kubectl version *": "allow",
-      "kubectl cluster-info *": "allow",
-      "kubectl api-resources *": "allow",
-      "kubectl events *": "allow",
-      "kubectl auth *": "allow",
-      // added: namespace/context forms and misc read-only
-      "kubectl -n * get *": "allow",
-      "kubectl -n * describe *": "allow",
-      "kubectl -n * logs *": "allow",
-      "kubectl --namespace * get *": "allow",
-      "kubectl --context * get *": "allow",
-      "kubectl --context * describe *": "allow",
-      "kubectl --context * logs *": "allow",
-      "kubectl config get-contexts*": "allow",
-      "kubectl config current-context": "allow",
-      "kubectl wait *": "allow",
-      // --- Helm read-only ---
-      "helm list *": "allow",
-      "helm get *": "allow",
-      "helm history *": "allow",
-      "helm lint *": "allow",
-      "helm template *": "allow",
-      "helm show *": "allow",
-      "helm search *": "allow",
-      "helm version *": "allow",
-      "helm repo list*": "allow",
-      // --- Kind read-only ---
-      "kind get *": "allow",
-      "kind export *": "allow",
-      // --- Git: broad allow FIRST, gates and denies come after ---
-      "git *": "allow",
-      "git status": "allow",
-      "git status *": "allow",
-      "git log *": "allow",
-      "git diff *": "allow",
-      "git branch *": "allow",
-      "git show *": "allow",
-      "git remote *": "allow",
-      "git stash list": "allow",
-      "git tag *": "allow",
-      "git add *": "allow",
-      "git fetch *": "allow",
-      // --- GitHub CLI read-only ---
-      "gh pr view *": "allow",
-      "gh pr list *": "allow",
-      "gh pr checks *": "allow",
-      "gh pr diff *": "allow",
-      "gh run list *": "allow",
-      "gh run view *": "allow",
-      // --- Docker read-only ---
-      "docker ps *": "allow",
-      "docker images *": "allow",
-      "docker logs *": "allow",
-      "docker inspect *": "allow",
-      // --- Write/exec: ask ---
-      "npm *": "ask",
-      "npx *": "ask",
-      "pip *": "ask",
-      "pip3 *": "ask",
-      "go *": "ask",
-      "make *": "ask",
-      "docker build *": "ask",
-      "docker run *": "ask",
-      "docker pull *": "ask",
-      "kubectl apply *": "ask",
-      "kubectl delete *": "ask",
-      "kubectl exec *": "ask",
-      "kubectl port-forward *": "ask",
-      "kubectl rollout *": "ask",
-      "kubectl patch *": "ask",
-      "kubectl create *": "ask",
-      "helm install *": "ask",
-      "helm upgrade *": "ask",
-      "helm uninstall *": "ask",
-      "helm rollback *": "ask",
-      "helm dependency *": "ask",
-      "helm package *": "ask",
-      "kind create *": "ask",
-      "kind delete *": "ask",
-      "kind load *": "ask",
-      "git commit *": "ask",
-      "git push *": "ask",
-      "git merge *": "ask",
-      "git rebase *": "ask",
-      "git reset *": "ask",
-      "git checkout *": "ask",
-      "git pull *": "ask",
-      "gh pr create *": "ask",
-      "bash *": "ask",
-      "sh *": "ask",
-      "node *": "ask",
-      "python *": "ask",
-      "python3 *": "ask",
-      "ruby *": "ask",
-      "chmod *": "ask",
-      "chown *": "ask",
-      "cp *": "ask",
-      "mv *": "ask",
-      "mkdir *": "ask",
-      "touch *": "ask",
-      "wget *": "ask",
-      // --- Safe sub-forms of the asks above (must come AFTER them) ---
-      "kubectl rollout status *": "allow",
-      "go test *": "allow",
-      "go build *": "allow",
-      "go vet *": "allow",
-      "go list *": "allow",
-      "go version*": "allow",
-      "go fmt *": "allow",
-      "npm --version": "allow",
-      "npm ls*": "allow",
-      "npm list*": "allow",
-      "npm outdated*": "allow",
-      "npm view *": "allow",
-      "npm info *": "allow",
-      "npm explain *": "allow",
-      "npm audit*": "allow",
-      "npm test*": "allow",
-      "npm run test*": "allow",
-      "npm run lint*": "allow",
-      "npm run typecheck*": "allow",
-      "npm run build*": "allow",
-      "npm run format*": "allow",
-      "pip list*": "allow",
-      "pip show *": "allow",
-      "pip freeze*": "allow",
-      "pip check*": "allow",
-      "pip3 list*": "allow",
-      "pip3 show *": "allow",
-      "pip3 freeze*": "allow",
-      "python --version": "allow",
-      "python3 --version": "allow",
-      "python -m pytest *": "allow",
-      "python3 -m pytest *": "allow",
-      "python -m json.tool*": "allow",
-      "python3 -m json.tool*": "allow",
-      "python -m py_compile *": "allow",
-      "python3 -m py_compile *": "allow",
-      "python -m venv *": "allow",
-      "python3 -m venv *": "allow",
-      "pytest *": "allow",
-      "ruff *": "allow",
-      "black *": "allow",
-      "mypy *": "allow",
-      "flake8 *": "allow",
-      "bash --version": "allow",
-      "bash -n *": "allow",
-      "sh -n *": "allow",
-      "shellcheck *": "allow",
-      "shfmt *": "allow",
-      "chmod +x *": "allow",
-      "node --version": "allow",
-      "node -v": "allow",
-      "node --check *": "allow",
-      "ruby --version": "allow",
-      "ruby -c *": "allow",
-      "gem list*": "allow",
-      "gem info *": "allow",
-      "bundle list*": "allow",
-      "bundle check*": "allow",
-      "bundle outdated*": "allow",
-      "bundle exec *": "ask",
-      "bundle exec rspec *": "allow",
-      "bundle exec rubocop *": "allow",
-      "rspec *": "allow",
-      "rubocop *": "allow",
-      // --- Loophole re-gates (AFTER the broad allows they patch) ---
-      "sed -i *": "ask",
-      "find * -delete*": "deny",
-      "find * -exec *": "ask",
-      "curl * -X *": "ask",
-      "curl * -d *": "ask",
-      "kubectl get secret*": "ask",
-      "kubectl -n * get secret*": "ask",
-      "kubectl --namespace * get secret*": "ask",
-      "kubectl --context * get secret*": "ask",
-      "kubectl auth reconcile*": "ask",
-      "npm audit fix*": "ask",
-      "pip install *": "ask",
-      "pip3 install *": "ask",
-      "gem install *": "ask",
-      "bundle install*": "ask",
-      "bundle update*": "ask",
-      "npm install*": "ask",
-      "npm ci*": "ask",
-      "npm update*": "ask",
-      "npm uninstall*": "ask",
-      // --- Always deny: destructive ---
-      "rm *": "deny",
-      "rm -rf *": "deny",
-      "rmdir *": "deny",
-      "mkfs *": "deny",
-      "dd *": "deny",
-      "fdisk *": "deny",
-      "shutdown *": "deny",
-      "reboot *": "deny",
-      "halt *": "deny",
-      "poweroff *": "deny",
-      "sudo *": "deny",
-      "chmod 777 *": "deny",
-      "chmod -R 777 *": "deny",
-      ":(){ :|:& };:": "deny",
-      "kubectl delete -A*": "deny",
-      "kubectl delete --all*": "deny",
-      "terraform apply -auto-approve*": "deny",
-      "tofu apply -auto-approve*": "deny",
-      "npm publish*": "deny",
-      "npm login*": "deny",
-      "npm token*": "deny",
-      "npm config set*": "deny",
-      "gem push *": "deny",
-      // --- Always deny: destructive git (AFTER "git *" and the git asks) ---
-      "git rm*": "deny",
-      "git clean*": "deny",
-      "git gc*": "deny",
-      "git prune*": "deny",
-      "git branch -d*": "deny",
-      "git branch -D*": "deny",
-      "git branch --delete*": "deny",
-      "git tag -d*": "deny",
-      "git tag --delete*": "deny",
-      "git push --delete*": "deny",
-      "git push * --delete*": "deny",
-      "git push -d*": "deny",
-      "git push * -d": "deny",
-      "git push * -d *": "deny",
-      "git push * :*": "deny",
-      "git push -f*": "deny",
-      "git push * -f": "deny",
-      "git push * -f *": "deny",
-      "git push*--force*": "deny",
-      "git reset --hard*": "deny",
-      "git checkout -- *": "deny",
-      "git restore *": "deny",
-      "git stash drop*": "deny",
-      "git stash clear*": "deny",
-      "git worktree remove*": "deny",
-      "git worktree prune*": "deny",
-      "git remote remove*": "deny",
-      "git remote rm*": "deny",
-      "git submodule deinit*": "deny",
-      "git reflog expire*": "deny",
-      "git reflog delete*": "deny",
-      "git filter-branch*": "deny",
-      "git update-ref -d*": "deny",
-      // --- Always deny: secret exposure ---
-      "cat ~/.ssh/*": "deny",
-      "cat ~/.gnupg/*": "deny",
-      "cat ~/.aws/*": "deny",
-      "cat ~/.kube/config": "deny",
-      "cat ~/.docker/config.json": "deny",
-      "cat ~/.npmrc": "deny",
-      "cat ~/.config/gcloud/*": "deny",
-      "cat .env": "deny",
-      "cat .env.*": "deny",
-      "cat */.env": "deny",
-      "env | grep *KEY*": "deny",
-      "env | grep *SECRET*": "deny",
-      "env | grep *TOKEN*": "deny",
-      "env | grep *PASSWORD*": "deny",
-      "git config --global *": "deny",
-      "ls .git/*": "deny",
-      "cat .git/*": "deny",
-      "find .git/*": "deny"
+    {
+      "action": "read",
+      "resource": "*.env.*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "*.env.example",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*/.ssh/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "*/.aws/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "*/.gnupg/*",
+      "effect": "deny"
+    },
+    {
+      "action": "glob",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "grep",
+      "resource": "*",
+      "effect": "allow"
+    },
+    // --- Edits ---
+    {
+      "action": "edit",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "edit",
+      "resource": "*.env",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.env.*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.env.example",
+      "effect": "allow"
+    },
+    {
+      "action": "edit",
+      "resource": "*/.ssh/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*/.aws/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*/.gnupg/*",
+      "effect": "deny"
+    },
+    // --- Web ---
+    {
+      "action": "webfetch",
+      "resource": "*",
+      "effect": "ask"
+    },
+    {
+      "action": "websearch",
+      "resource": "*",
+      "effect": "ask"
+    },
+    // --- Directories outside the project ---
+    {
+      "action": "external_directory",
+      "resource": "/tmp/*",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "~/Documents/workspace/*",
+      "effect": "allow"
+    },
+    // ========================================================
+    // SHELL
+    // ========================================================
+    // --- Catch-all: anything not listed below prompts ---
+    {
+      "action": "shell",
+      "resource": "*",
+      "effect": "ask"
+    },
+    // --- Safe read-only ---
+    {
+      "action": "shell",
+      "resource": "ls",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ls *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ls -la *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pwd",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "whoami",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "echo *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "cat *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "grep *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "find *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "which *",
+      "effect": "allow"
+    },
+    // CHANGED: was allow. A bare `env` dumps every exported secret (OPENAI_API_KEY, tokens).
+    {
+      "action": "shell",
+      "resource": "env",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "uname *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "date",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "uptime",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ps *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "top -bn1",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "df *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "du *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "free *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "lsof *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "jq *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "awk *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "sed *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "cut *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "sort *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "uniq *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "wc *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "head *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "tail *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "tr *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "curl -s *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "curl --silent *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "dig *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ping -c *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "cd *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "test *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "stat *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "file *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "basename *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "dirname *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "realpath *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "tree *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "diff *",
+      "effect": "allow"
+    },
+    // --- Kubernetes read-only ---
+    {
+      "action": "shell",
+      "resource": "kubectl get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl describe *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl logs *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl explain *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl top *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl diff *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl version *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl cluster-info *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl api-resources *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl events *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl auth *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl -n * get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl -n * describe *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl -n * logs *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl --namespace * get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl --context * get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl --context * describe *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl --context * logs *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl config get-contexts*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl config current-context",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl wait *",
+      "effect": "allow"
+    },
+    // --- Helm read-only ---
+    {
+      "action": "shell",
+      "resource": "helm list *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm history *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm lint *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm template *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm show *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm search *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm version *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "helm repo list*",
+      "effect": "allow"
+    },
+    // --- Kind read-only ---
+    {
+      "action": "shell",
+      "resource": "kind get *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "kind export *",
+      "effect": "allow"
+    },
+    // --- Git: broad allow FIRST, gates and denies come after ---
+    {
+      "action": "shell",
+      "resource": "git *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git status",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git status *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git log *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git diff *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git branch *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git show *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git remote *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git stash list",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git tag *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git add *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git fetch *",
+      "effect": "allow"
+    },
+    // --- GitHub CLI read-only ---
+    {
+      "action": "shell",
+      "resource": "gh pr view *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gh pr list *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gh pr checks *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gh pr diff *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gh run list *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gh run view *",
+      "effect": "allow"
+    },
+    // --- Docker read-only ---
+    {
+      "action": "shell",
+      "resource": "docker ps *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker images *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker logs *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "docker inspect *",
+      "effect": "allow"
+    },
+    // --- Write/exec: ask ---
+    {
+      "action": "shell",
+      "resource": "npm *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npx *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "pip *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "pip3 *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "go *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "make *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "docker build *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "docker run *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "docker pull *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl apply *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl exec *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl port-forward *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl rollout *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl patch *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl create *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "helm install *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "helm upgrade *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "helm uninstall *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "helm rollback *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "helm dependency *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "helm package *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kind create *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kind delete *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kind load *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git commit *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git merge *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git rebase *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git reset *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git checkout *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git pull *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "gh pr create *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "bash *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "sh *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "node *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "python *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "python3 *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "ruby *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "chmod *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "chown *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "cp *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "mv *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "mkdir *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "touch *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "wget *",
+      "effect": "ask"
+    },
+    // --- Safe sub-forms of the asks above (must come AFTER them) ---
+    {
+      "action": "shell",
+      "resource": "kubectl rollout status *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "go test *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "go build *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "go vet *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "go list *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "go version*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "go fmt *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm --version",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm ls*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm list*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm outdated*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm view *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm info *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm explain *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm audit*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm test*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm run test*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm run lint*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm run typecheck*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm run build*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "npm run format*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip list*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip show *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip freeze*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip check*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip3 list*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip3 show *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pip3 freeze*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python --version",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python3 --version",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python -m pytest *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python3 -m pytest *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python -m json.tool*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python3 -m json.tool*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python -m py_compile *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python3 -m py_compile *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python -m venv *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "python3 -m venv *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "pytest *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ruff *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "black *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "mypy *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "flake8 *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bash --version",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bash -n *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "sh -n *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "shellcheck *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "shfmt *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "chmod +x *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "node --version",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "node -v",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "node --check *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ruby --version",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "ruby -c *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gem list*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "gem info *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle list*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle check*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle outdated*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle exec *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle exec rspec *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle exec rubocop *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "rspec *",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "rubocop *",
+      "effect": "allow"
+    },
+    // --- Loophole re-gates (AFTER the broad allows they patch) ---
+    {
+      "action": "shell",
+      "resource": "sed -i *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "find * -delete*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "find * -exec *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "curl * -X *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "curl * -d *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl get secret*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl -n * get secret*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl --namespace * get secret*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl --context * get secret*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl auth reconcile*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npm audit fix*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "pip install *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "pip3 install *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "gem install *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle install*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "bundle update*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npm install*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npm ci*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npm update*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npm uninstall*",
+      "effect": "ask"
+    },
+    // --- Always deny: destructive ---
+    {
+      "action": "shell",
+      "resource": "rm *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rmdir *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "mkfs *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "dd *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "fdisk *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "shutdown *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "reboot *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "halt *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "poweroff *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "sudo *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "chmod 777 *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "chmod -R 777 *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": ":(){ :|:& };:",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete -A*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "kubectl delete --all*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "terraform apply -auto-approve*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "tofu apply -auto-approve*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "npm publish*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "npm login*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "npm token*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "npm config set*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "gem push *",
+      "effect": "deny"
+    },
+    // --- Always deny: destructive git (AFTER "git *" and the git asks) ---
+    {
+      "action": "shell",
+      "resource": "git rm*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git clean*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git gc*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git prune*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git branch -d*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git branch -D*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git branch --delete*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git tag -d*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git tag --delete*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push --delete*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * --delete*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push -d*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * -d",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * -d *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * :*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push -f*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * -f",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * -f *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push*--force*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git reset --hard*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git checkout -- *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git restore *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git stash drop*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git stash clear*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git worktree remove*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git worktree prune*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git remote remove*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git remote rm*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git submodule deinit*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git reflog expire*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git reflog delete*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git filter-branch*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git update-ref -d*",
+      "effect": "deny"
+    },
+    // --- Always deny: secret exposure ---
+    // REMOVED: "env | grep *KEY/SECRET/TOKEN/PASSWORD*". V2 splits pipelines into separate
+    // commands, so a pattern containing "|" never matches. The bare `env` ask above covers it.
+    {
+      "action": "shell",
+      "resource": "cat ~/.ssh/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat ~/.gnupg/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat ~/.aws/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat ~/.kube/config",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat ~/.docker/config.json",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat ~/.npmrc",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat ~/.config/gcloud/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat .env",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat .env.*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat */.env",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git config --global *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "ls .git/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "cat .git/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "find .git/*",
+      "effect": "deny"
     }
-  },
+  ],
   // ============================================================
   // AGENTS
-  // Core Agent is the primary router. Specialist agents are loaded from
-  // ~/.config/opencode/agents and own their defined engineering domains.
+  // "agent" -> "agents"; "disable" -> "disabled".
+  // core-agent and the specialist agents are loaded from
+  // ~/.config/opencode/agents/*.md (V1 frontmatter still works).
   // ============================================================
-  "agent": {
-    // Disable built-in defaults
+  "agents": {
+    // Replaces V1 "small_model" (used for titles / lightweight tasks).
+    "title": {
+      "model": "openai/gpt-5.6-terra"
+    },
+    // Built-in defaults
     "build": {
-      "disable": false
+      "disabled": false
     },
     "plan": {
-      "disable": true
+      "disabled": true
     },
     "explore": {
-      "disable": true
+      "disabled": true
     },
     "general": {
-      "disable": true
+      "disabled": true
     }
   },
   "tool_output": {
     "max_lines": 200,
     "max_bytes": 8192
   },
+  // V2 has no tail_turns / prune; recent context is kept by token budget.
   "compaction": {
     "auto": true,
-    "prune": true,
-    "tail_turns": 8
+    "keep": {
+      "tokens": 15000
+    }
   }
 }
