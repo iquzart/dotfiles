@@ -22,6 +22,7 @@ permission:
     "*.yaml": allow
     "*.yml": allow
     "*.txt": allow
+    "*.metrics": allow
   glob: allow
   grep: allow
   list: allow

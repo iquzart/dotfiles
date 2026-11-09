@@ -16,6 +16,9 @@
   "share": "disabled",
   "update": "notify", // was: autoupdate
   "snapshots": true, // was: snapshot
+  "experimental": {
+    "todo": true
+  },
   // ============================================================
   // DEFAULT AGENT & MODELS
   // OpenAI is the active provider. Ollama is parked (see PLUGINS).
