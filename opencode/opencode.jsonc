@@ -25,7 +25,7 @@
   // small_model now lives on the built-in "title" agent (see AGENTS).
   // ============================================================
   "default_agent": "core-agent",
-  "model": "openai/gpt-6.1-sol",
+  "model": "openai/gpt-6.2-sol",
   // ============================================================
   // PLUGINS
   // V1 plugins do not run in V2. Port them before adding here.
@@ -141,8 +141,8 @@
       },
       "models": {
         // Best cost/quality — complex code, hard reviews
-        "gpt-6.1-sol": {
-          "name": "GPT 6.1 Sol",
+        "gpt-6.2-sol": {
+          "name": "GPT 6.2 Sol",
           "capabilities": {
             "tools": true,
             "input": [

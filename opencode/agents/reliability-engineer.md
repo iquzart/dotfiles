@@ -41,8 +41,8 @@ permission:
     reliability-operations: allow
     incident-response: allow
     github-delivery: allow
-  "grafana_*": allow
-  "atlassian_*": deny
+  "grafana*": allow
+  "atlassian*": deny
   # Only reliability-specific rules live here.
   bash:
     # Namespace/context forms of read-only kubectl (the plain forms are global)

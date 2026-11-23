@@ -26,8 +26,8 @@ permission:
     github-delivery: allow
     kubernetes-operations: allow
     container-development: allow
-  "grafana_*": deny
-  "atlassian_*": deny
+  "grafana*": deny
+  "atlassian*": deny
   # Only platform-specific rules live here.
   bash:
     # Containers and build
