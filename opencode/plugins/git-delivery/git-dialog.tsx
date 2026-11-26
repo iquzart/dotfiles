@@ -6,7 +6,7 @@ import { Show, type JSX } from "solid-js"
 type GitDialogOptions = {
   title: string
   action?: string
-  tone?: "success" | "error"
+  tone?: "success" | "error" | "warning"
 }
 
 function GitDialog(props: GitDialogOptions & {

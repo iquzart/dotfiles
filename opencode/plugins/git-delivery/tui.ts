@@ -2,12 +2,12 @@ import { Plugin } from "@opencode/plugin/tui"
 import { execFile } from "node:child_process"
 import { hostname } from "node:os"
 import { fileURLToPath } from "node:url"
-import { confirmCommit } from "./commit-dialog"
-import { confirmPush, showPushResult } from "./push-dialog"
+import { confirmCommit, showCommitCandidates, showCommitFailure } from "./commit-dialog"
+import { confirmPush, showPushResult, type PushDestination } from "./push-dialog"
 
 const commitScript = fileURLToPath(new URL("./git-commit.sh", import.meta.url))
 const pushScript = fileURLToPath(new URL("./git-push.sh", import.meta.url))
-const commitUsage = 'Use /git-commit, /git-commit --all, or /git-commit -- path "path with spaces".'
+const commitUsage = 'Use /git-commit or /gc, optionally with --all or -- path "path with spaces".'
 
 function displayOutput(output: string) {
   // Strip control sequences and credentials embedded in HTTPS push URLs.
@@ -19,24 +19,63 @@ function displayOutput(output: string) {
     .trim()
 }
 
-function runScript(cwd: string, script: string, args: string[]) {
-  return new Promise<{ stdout: string; code: number }>((resolve, reject) => {
+function runScript(cwd: string, script: string, args: string[], { captureExit = false } = {}) {
+  return new Promise<{ stdout: string; stderr: string; code: number }>((resolve, reject) => {
     const child = execFile(
       "/bin/bash",
       [script, ...args],
       { cwd, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } },
       (error, stdout, stderr) => {
-        if (error && !(script === commitScript && args[0] === "prepare" && error.code === 2)) {
-          // execFile's default error includes its arguments, which may contain a subject or path.
-          const detail = displayOutput(`${stdout}\n${stderr}`)
-          reject(new Error(detail || `Could not run ${script.split("/").at(-1)} (${error.code ?? "failed"}).`))
+        const code = error ? error.code : 0
+        const noStagedChanges = script === commitScript && args[0] === "prepare" && code === 2
+        if (typeof code === "number" && (!error || captureExit || noStagedChanges)) {
+          resolve({ stdout, stderr, code })
           return
         }
-        resolve({ stdout, code: error ? 2 : 0 })
+        // execFile's default error includes its arguments, which may contain a subject or path.
+        const detail = displayOutput(`${stdout}\n${stderr}`)
+        reject(new Error(detail || `Could not run ${script.split("/").at(-1)} (${code ?? "failed"}).`))
       },
     )
     child.stdin?.end()
   })
+}
+
+const pushStatuses = new Map<string, PushDestination["status"]>([
+  [" ", "updated"],
+  ["*", "created"],
+  ["=", "unchanged"],
+  ["!", "rejected"],
+])
+
+function pushResult(result: { stdout: string; stderr: string; code: number }) {
+  const destinations: PushDestination[] = []
+  const messages = []
+  let name = ""
+  for (const line of result.stdout.split("\n")) {
+    if (line.startsWith("To ")) {
+      name = displayOutput(line.slice(3))
+      continue
+    }
+    if (!line || line === "Done") continue
+
+    const [flag, ref, summary] = line.split("\t", 3)
+    const status = pushStatuses.get(flag)
+    if (name && status && ref && summary) {
+      destinations.push({ name, status, summary: status === "unchanged" ? "" : displayOutput(summary) })
+    } else {
+      messages.push(line)
+    }
+  }
+
+  const updated = destinations.some(({ status }) => status === "updated" || status === "created")
+  const details = displayOutput([...messages, result.stderr].join("\n"))
+  if (result.code === 0) {
+    const title = destinations.length > 0 && !updated ? "Already up to date" : "Push complete"
+    return { title, tone: "success" as const, destinations, details }
+  }
+  if (updated) return { title: "Push partially complete", tone: "warning" as const, destinations, details }
+  return { title: "Push failed", tone: "error" as const, destinations, details: details || `Git exited with status ${result.code}.` }
 }
 
 function stagingArgs(input?: string) {
@@ -142,12 +181,12 @@ export default Plugin.define({
           description: "Commit staged changes, or stage with --all or -- <paths>.",
           group: "Git",
           palette: true,
-          slash: { name: "git-commit", arguments: true },
+          slash: { name: "git-commit", aliases: ["gc"], arguments: true },
           run: (input) => inLocalRepository(async (cwd) => {
             const model = commitModel()
             const prepared = await runScript(cwd, commitScript, ["prepare", ...stagingArgs(input)])
             if (prepared.code === 2) {
-              await context.ui.dialog.alert({ title: "Git commit", message: displayOutput(prepared.stdout) })
+              await showCommitCandidates(context, displayOutput(prepared.stdout), commitUsage)
               return
             }
 
@@ -167,7 +206,7 @@ export default Plugin.define({
             if (!confirmed) return
             const result = await runScript(cwd, commitScript, ["commit", ...snapshot])
             context.ui.toast.show({ title: "Git commit", message: displayOutput(result.stdout).split("\n", 1)[0], variant: "success" })
-          }, (message) => context.ui.dialog.alert({ title: "Git commit", message })),
+          }, (message) => showCommitFailure(context, message)),
         },
         {
           id: "git-delivery.push",
@@ -175,26 +214,26 @@ export default Plugin.define({
           description: "Preview and push outgoing commits to the configured upstream.",
           group: "Git",
           palette: true,
-          slash: { name: "git-push" },
+          slash: { name: "git-push", aliases: ["gp"] },
           run: () => inLocalRepository(async (cwd) => {
             const preview = await runScript(cwd, pushScript, ["preview"])
             const [branch, head, remote, target, fingerprint, ...details] = preview.stdout.trimEnd().split("\n")
             const upstream = displayOutput(`${remote}/${target.slice("refs/heads/".length)}`)
+            const pushTarget = { branch: displayOutput(branch.slice("refs/heads/".length)), upstream }
             const commits = displayOutput(details.join("\n"))
             if (!commits) {
-              await showPushResult(context, { title: "Already up to date", tone: "success", output: upstream })
+              await showPushResult(context, { title: "Already up to date", tone: "success", target: pushTarget })
               return
             }
             const confirmed = await confirmPush(context, {
-              branch: displayOutput(branch.slice("refs/heads/".length)),
-              upstream,
+              ...pushTarget,
               directory: displayOutput(cwd),
               commits,
             })
             if (!confirmed) return
-            const result = await runScript(cwd, pushScript, ["push", branch, head, remote, target, fingerprint])
-            await showPushResult(context, { title: "Push complete", tone: "success", output: displayOutput(result.stdout) })
-          }, (message) => showPushResult(context, { title: "Push failed", tone: "error", output: message })),
+            const result = await runScript(cwd, pushScript, ["push", branch, head, remote, target, fingerprint], { captureExit: true })
+            await showPushResult(context, { ...pushResult(result), target: pushTarget })
+          }, (message) => showPushResult(context, { title: "Push failed", tone: "error", details: message })),
         },
       ],
     }))

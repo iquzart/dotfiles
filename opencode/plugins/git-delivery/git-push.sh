@@ -99,7 +99,7 @@ main() {
   if [[ $fingerprint != "$6" || $(git symbolic-ref -q HEAD) != "$branch" || $(git rev-parse -q --verify HEAD) != "$head" ]]; then
     die 'The local or remote branch changed after the preview. Run /git-push again.'
   fi
-  push_branch 2>&1
+  LC_ALL=C push_branch
 }
 
 main "$@"
