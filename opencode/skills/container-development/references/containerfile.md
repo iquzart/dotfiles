@@ -23,14 +23,11 @@
 
 MUST use at least two stages: a build stage with the full toolchain, and a minimal runtime stage receiving only the artifact and runtime dependencies. Nothing from the build toolchain reaches the final image.
 
-Start from `assets/Containerfile.generic`, `.go`, or `.node`. Order inside a stage:
+Start from `assets/Containerfile.generic`, `.go`, or `.node`. Preserve the selected template's order when adapting it:
 
-1. `FROM` (pinned, from a global `ARG` so tag and digest live in one place)
-2. `WORKDIR`
-3. dependency manifests, then dependency install
-4. source copy, then build
-5. runtime stage: `COPY --from=build --chown=<uid>:<gid>`, `USER`, `EXPOSE`, `ENTRYPOINT`
-6. dynamic label `ARG`s and `LABEL` last
+1. Global image `ARG`s with pinned tags and digests.
+2. Build and dependency stages: `FROM`, `WORKDIR`, dependency manifests and installation, then source copy and build as needed.
+3. Runtime stage: `FROM`, one OCI metadata block (`ARG VERSION`, `ARG REVISION`, `ARG CREATED`, then `LABEL`), runtime `ENV` if used, `WORKDIR`, artifact and dependency copies, numeric `USER`, `EXPOSE`, then exec-form `ENTRYPOINT` and optional `CMD`.
 
 Document runtime constraints with a comment in the runtime stage, for example `# Runtime notes: supports --read-only; writable: /tmp`.
 
@@ -75,9 +72,9 @@ org.opencontainers.image.revision     ARG REVISION
 org.opencontainers.image.created      ARG CREATED
 ```
 
-- Declare the dynamic `ARG`s **in the final stage, at the end**. An `ARG` declared in an earlier stage is invisible to later stages unless redeclared, and a changing value (`created`, `revision`) placed early invalidates the cache for every later layer.
+- In new Containerfiles, keep the dynamic `ARG`s immediately before their `LABEL`, as one block directly after the runtime `FROM`. Keep build commands in the build stage: changing an `ARG` can invalidate a later `RUN` in the same stage.
 - Values are passed by the Makefile locally and by the CI workflow (owned by `platform-engineer`) in pipelines.
-- Equivalent alternative: CI applies labels with `--label` flags or `docker/metadata-action`. Keep the static labels in the file and note that dynamic ones are applied at build time.
+- In existing projects, CI may instead apply dynamic labels with `--label` flags or `docker/metadata-action`. Keep the static labels in the file and note that dynamic ones are applied at build time.
 
 ## 7. Health checks
 

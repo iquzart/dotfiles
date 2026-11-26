@@ -1,6 +1,6 @@
 # Makefile reference
 
-Template: `assets/Makefile`. A `Makefile` is **required** whenever a Containerfile or compose file is created. It gives every project one consistent local interface and documents the exact build invocation, including label `ARG`s.
+Template: `assets/makefile`. A `Makefile` is **required** whenever a Containerfile or compose file is created. It gives every project one consistent local interface and documents the exact build invocation, including label `ARG`s.
 
 ## Rules
 

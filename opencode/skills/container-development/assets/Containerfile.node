@@ -20,7 +20,7 @@ RUN npm run build
 
 # ---- Runtime stage ----
 FROM ${NODE_IMAGE}
-# Dynamic labels last in the final stage so changing values don't bust the cache
+# OCI image metadata
 ARG VERSION=dev
 ARG REVISION=unknown
 ARG CREATED=unknown
@@ -38,6 +38,6 @@ COPY --from=deps  --chown=1000:1000 /src/node_modules ./node_modules
 COPY --from=build --chown=1000:1000 /src/dist ./dist
 COPY --chown=1000:1000 package.json ./
 USER 1000:1000
-# Health: node dist/healthcheck.js (defined in compose / orchestration, not here)
+
 EXPOSE {{PORT}}
 ENTRYPOINT ["node", "dist/server.js"]

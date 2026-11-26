@@ -17,16 +17,16 @@ Two workflows. Pick one first, then read only the references it points to.
 ## Create (new project)
 
 1. Detect the stack (Go, Node, other) and the service name, port, and repo from the project.
-2. Scaffold the deliverables with the script (never overwrites existing files). With no flags it auto-detects language (`go.mod`, `package.json`), service name, and org/repo (git remote):
+2. Scaffold from the matching template with the detected project values. The script requires `--name`, defaults to `--lang generic`, and never overwrites existing files:
 
 ```bash
-   python $SKILL_DIR/scripts/scaffold.py [--compose] [--with-db] [--dest .]
-   # or override anything: --lang go|node|generic --name <svc> --port <port> --org <org> --repo <repo>
+   python "$SKILL_DIR/scripts/scaffold.py" --lang go --name my-service \
+     --port 8080 --org my-org --repo my-repo
 ```
 
-   Or copy from `assets/` by hand if the script can't run. The user can also trigger this with the `/generate-containerfile` command (below).
-3. Replace every remaining `<version>` / `<digest>` placeholder with a real pinned tag and digest (look them up; never invent digests) and adapt build commands to the project.
-4. Verify: `python $SKILL_DIR/scripts/check.py .` (must report no Blockers or Majors), plus `hadolint Containerfile` if installed.
+   Add `--compose`, `--with-db` (with `--compose`), or `--dest` as needed. If the script can't run, copy from `assets/` by hand. The user can also trigger this with `/generate-containerfile` (below).
+3. Adapt the scaffold in place: preserve its instruction order. Keep one contiguous `ARG VERSION` / `ARG REVISION` / `ARG CREATED` / OCI `LABEL` block immediately after the runtime `FROM`. Keep `ENTRYPOINT` and any `CMD` at the end. Replace image placeholders with real pinned tags and digests (look them up; never invent digests) and adapt build commands to the project.
+4. Verify: `python $SKILL_DIR/scripts/check.py .` (must report no Blockers or Majors), plus `hadolint Containerfile` if installed. Confirm that the OCI metadata block appears exactly once, immediately after the runtime `FROM`.
 5. Tell the user what was created and which values they must confirm.
 
 Deliverables are never just one file:
@@ -40,7 +40,7 @@ Deliverables are never just one file:
 | `.env.example` | When compose or the app reads environment variables |
 | Base-image update automation | Check Renovate/Dependabot covers the repo; if not, flag it |
 
-If any already exists, extend it. Never overwrite or rename without asking. For an existing `Makefile`, merge the targets from `assets/Makefile` instead of replacing it.
+If any already exists, extend it. Never overwrite or rename without asking. For an existing `Makefile`, merge the targets from `assets/makefile` instead of replacing it.
 
 ## Optimize (existing files)
 
@@ -59,7 +59,7 @@ These always apply in both workflows. Detail and rationale are in `references/`.
 - No secrets in `ARG`, `ENV`, or `COPY`; use BuildKit secret mounts for build-time secrets.
 - **No `HEALTHCHECK` in Containerfiles.** Health is defined in compose and the orchestration platform.
 - Exec-form `ENTRYPOINT`/`CMD`.
-- Standard OCI labels; dynamic ones as `ARG`s declared late in the final stage.
+- Standard OCI labels; declare their dynamic `ARG`s in the same stage before the `LABEL`.
 - `.dockerignore` exists; `Makefile` exists.
 - Compose: pinned images, resource limits, healthchecks with `service_healthy` ordering, named network and volumes, no plaintext secrets.
 
@@ -83,7 +83,7 @@ Read only what the task needs.
 | `assets/Containerfile.go` | Go, static binary on distroless |
 | `assets/Containerfile.node` | Node, prod-deps stage plus slim runtime |
 | `assets/compose.yaml` | App plus optional Postgres, fully hardened |
-| `assets/Makefile` | Local build/run/lint/size/compose targets |
+| `assets/makefile` | Becomes `Makefile` with local build/run/lint/size/compose targets |
 | `assets/dockerignore` | Becomes `.dockerignore` |
 | `assets/env.example` | Becomes `.env.example` |
 

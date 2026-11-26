@@ -94,7 +94,7 @@ def main() -> int:
     outputs["Containerfile"] = prep((ASSETS / f"Containerfile.{args.lang}").read_text())
     outputs[".dockerignore"] = (ASSETS / "dockerignore").read_text()
 
-    makefile = (ASSETS / "Makefile").read_text()
+    makefile = (ASSETS / "makefile").read_text()
     if args.compose:
         makefile = keep_blocks(makefile, "compose")
     else:

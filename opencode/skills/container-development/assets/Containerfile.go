@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 # ---- Runtime stage ----
 FROM ${RUNTIME_IMAGE}
-# Dynamic labels last in the final stage so changing values don't bust the cache
+# OCI image metadata
 ARG VERSION=dev
 ARG REVISION=unknown
 ARG CREATED=unknown
@@ -32,8 +32,7 @@ LABEL org.opencontainers.image.source="https://github.com/{{ORG}}/{{REPO}}" \
 WORKDIR /app
 COPY --from=build --chown=65532:65532 /out/{{NAME}} /app/{{NAME}}
 USER 65532:65532
-# Health: /app/{{NAME}} healthcheck (defined in compose / orchestration, not here)
+
 EXPOSE {{PORT}}
 ENTRYPOINT ["/app/{{NAME}}"]
-
 

@@ -308,7 +308,7 @@ def check_containerfile(path: Path):
 
     # Labels
     label_text = " ".join(a for ln, n, a in fins if n == "LABEL")
-    missing = [l for l in OCI_LABELS if l not in label_text]
+    missing = [label for label in OCI_LABELS if label not in label_text]
     if missing:
         add(
             "Major",
@@ -318,32 +318,41 @@ def check_containerfile(path: Path):
             "add the standard org.opencontainers.image.* labels in the final stage",
         )
     final_args = {}
+    startup_line = next((ln for ln, n, a in fins if n in ("ENTRYPOINT", "CMD")), None)
     for idx, (ln, n, a) in enumerate(fins):
         if n == "ARG":
-            final_args[a.split("=")[0].strip()] = idx
-    for ln, n, a in fins:
-        if n == "LABEL":
+            final_args.setdefault(a.split("=", 1)[0].strip(), idx)
+        elif n == "LABEL":
+            if (
+                startup_line is not None
+                and ln > startup_line
+                and any(label in a for label in OCI_LABELS)
+            ):
+                add(
+                    "Minor",
+                    path,
+                    ln,
+                    "OCI labels appear after ENTRYPOINT or CMD",
+                    "keep the OCI metadata block before the startup instructions",
+                )
             for var in re.findall(r"\$\{?(\w+)\}?", a):
                 if var in DYNAMIC_ARGS and var not in final_args:
                     add(
                         "Major",
                         path,
                         ln,
-                        f"LABEL uses ${var} but ARG {var} is not declared in the final stage (label will be empty)",
+                        f"LABEL uses ${var} before ARG {var} is declared in the final stage",
                         "declare the ARG in the final stage before the LABEL",
                     )
-    last_build = max(
-        (i for i, (ln, n, a) in enumerate(fins) if n in ("RUN", "COPY", "ADD")),
-        default=-1,
-    )
-    early = [k for k, i in final_args.items() if k in DYNAMIC_ARGS and i < last_build]
+    last_run = max((i for i, (_, n, _) in enumerate(fins) if n == "RUN"), default=-1)
+    early = [k for k, i in final_args.items() if k in DYNAMIC_ARGS and i < last_run]
     if early:
         add(
             "Minor",
             path,
             final["line"],
-            f"dynamic label ARG(s) {', '.join(sorted(early))} declared before later layers (busts cache)",
-            "move them to the end of the final stage",
+            f"dynamic label ARG(s) {', '.join(sorted(early))} can invalidate a later RUN cache",
+            "move build work to the build stage where possible",
         )
 
     if not any(n == "EXPOSE" for ln, n, a in fins):
@@ -422,7 +431,7 @@ def check_containerfile(path: Path):
             path,
             1,
             "no Makefile next to the build file",
-            "add one (see assets/Makefile, references/makefile.md)",
+            "add one (see assets/makefile, references/makefile.md)",
         )
 
 

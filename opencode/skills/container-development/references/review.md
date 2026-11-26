@@ -45,7 +45,7 @@ Work through these in order when the goal is "smaller" or "faster":
 
 **Cache and build speed**
 - Dependency manifests are copied and dependencies installed before the source copy.
-- Dynamic label `ARG`s are in the final stage, at the end.
+- Generated Containerfiles keep the OCI metadata block directly after the runtime `FROM`. Later `RUN` instructions in that stage can lose their cache when metadata `ARG`s change; keep build work in the build stage.
 - BuildKit cache mounts for package-manager and compiler caches.
 - Stages that don't depend on each other can build in parallel (separate `FROM` stages, BuildKit builds them concurrently).
 - Frequently changing files come last in each stage.
