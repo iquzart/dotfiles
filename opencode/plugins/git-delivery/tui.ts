@@ -172,22 +172,29 @@ export default Plugin.define({
         {
           id: "git-delivery.push",
           title: "Git push",
-          description: "Push the current branch to its configured upstream.",
+          description: "Preview and push outgoing commits to the configured upstream.",
           group: "Git",
           palette: true,
           slash: { name: "git-push" },
           run: () => inLocalRepository(async (cwd) => {
             const preview = await runScript(cwd, pushScript, ["preview"])
-            const [branch, head, remote, target] = preview.stdout.trimEnd().split("\n")
+            const [branch, head, remote, target, fingerprint, ...details] = preview.stdout.trimEnd().split("\n")
+            const upstream = displayOutput(`${remote}/${target.slice("refs/heads/".length)}`)
+            const commits = displayOutput(details.join("\n"))
+            if (!commits) {
+              await showPushResult(context, { title: "Already up to date", tone: "success", output: upstream })
+              return
+            }
             const confirmed = await confirmPush(context, {
               branch: displayOutput(branch.slice("refs/heads/".length)),
-              upstream: displayOutput(`${remote}/${target.slice("refs/heads/".length)}`),
+              upstream,
               directory: displayOutput(cwd),
+              commits,
             })
             if (!confirmed) return
-            const result = await runScript(cwd, pushScript, ["push", branch, head, remote, target])
-            await showPushResult(context, displayOutput(result.stdout), "success")
-          }, (message) => showPushResult(context, message, "error")),
+            const result = await runScript(cwd, pushScript, ["push", branch, head, remote, target, fingerprint])
+            await showPushResult(context, { title: "Push complete", tone: "success", output: displayOutput(result.stdout) })
+          }, (message) => showPushResult(context, { title: "Push failed", tone: "error", output: message })),
         },
       ],
     }))
