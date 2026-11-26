@@ -3,6 +3,7 @@ import { execFile } from "node:child_process"
 import { hostname } from "node:os"
 import { fileURLToPath } from "node:url"
 import { confirmCommit } from "./commit-dialog"
+import { confirmPush, showPushResult } from "./push-dialog"
 
 const commitScript = fileURLToPath(new URL("./git-commit.sh", import.meta.url))
 const pushScript = fileURLToPath(new URL("./git-push.sh", import.meta.url))
@@ -12,6 +13,7 @@ function displayOutput(output: string) {
   // Strip control sequences and credentials embedded in HTTPS push URLs.
   return output
     .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/\t/g, "  ")
     .replace(/[\x00-\x08\x0b-\x1f\x7f-\x9f]/g, "")
     .replace(/(\b[a-z][a-z\d+.-]*:\/\/)[^\s/]+@/gi, "$1")
     .trim()
@@ -109,7 +111,10 @@ export default Plugin.define({
       }
     }
 
-    async function inLocalRepository(title: string, run: (cwd: string) => Promise<void>) {
+    async function inLocalRepository(
+      run: (cwd: string) => Promise<void>,
+      showError: (message: string) => Promise<void>,
+    ) {
       if (busy) return
       busy = true
       try {
@@ -122,10 +127,7 @@ export default Plugin.define({
         }
         await run(location.directory)
       } catch (error) {
-        await context.ui.dialog.alert({
-          title,
-          message: displayOutput(error instanceof Error ? error.message : String(error)),
-        })
+        await showError(displayOutput(error instanceof Error ? error.message : String(error)))
       } finally {
         busy = false
       }
@@ -141,7 +143,7 @@ export default Plugin.define({
           group: "Git",
           palette: true,
           slash: { name: "git-commit", arguments: true },
-          run: (input) => inLocalRepository("Git commit", async (cwd) => {
+          run: (input) => inLocalRepository(async (cwd) => {
             const model = commitModel()
             const prepared = await runScript(cwd, commitScript, ["prepare", ...stagingArgs(input)])
             if (prepared.code === 2) {
@@ -165,7 +167,7 @@ export default Plugin.define({
             if (!confirmed) return
             const result = await runScript(cwd, commitScript, ["commit", ...snapshot])
             context.ui.toast.show({ title: "Git commit", message: displayOutput(result.stdout).split("\n", 1)[0], variant: "success" })
-          }),
+          }, (message) => context.ui.dialog.alert({ title: "Git commit", message })),
         },
         {
           id: "git-delivery.push",
@@ -174,18 +176,18 @@ export default Plugin.define({
           group: "Git",
           palette: true,
           slash: { name: "git-push" },
-          run: () => inLocalRepository("Git push", async (cwd) => {
+          run: () => inLocalRepository(async (cwd) => {
             const preview = await runScript(cwd, pushScript, ["preview"])
             const [branch, head, remote, target] = preview.stdout.trimEnd().split("\n")
-            const confirmed = await context.ui.dialog.confirm({
-              title: "Push branch?",
-              message: displayOutput(`${cwd}\n${branch.slice("refs/heads/".length)} → ${remote}/${target.slice("refs/heads/".length)}`),
-              label: { confirm: "Push", cancel: "Cancel" },
+            const confirmed = await confirmPush(context, {
+              branch: displayOutput(branch.slice("refs/heads/".length)),
+              upstream: displayOutput(`${remote}/${target.slice("refs/heads/".length)}`),
+              directory: displayOutput(cwd),
             })
             if (!confirmed) return
             const result = await runScript(cwd, pushScript, ["push", branch, head, remote, target])
-            await context.ui.dialog.alert({ title: "Git push", message: displayOutput(result.stdout) })
-          }),
+            await showPushResult(context, displayOutput(result.stdout), "success")
+          }, (message) => showPushResult(context, message, "error")),
         },
       ],
     }))
