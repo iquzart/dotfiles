@@ -110,6 +110,7 @@ This is recommended when multiple platform agents are working on the same reposi
    ```
 
 9. Keep the actual commit description concise and follow the repository's normal commit-message style.
+10. Never add `[opencode]` to a commit message. Use the `[AI-generated]` marker in the position specified above.
 
 ## Reference Formats
 
